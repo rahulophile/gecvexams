@@ -345,7 +345,7 @@ export default function CreateTest() {
           </div>
 
           {/* Test Details Form */}
-          <div className="bg-gray-800 rounded-lg p-6 mb-8">
+          <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Test Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
@@ -445,7 +445,7 @@ export default function CreateTest() {
                 </p>
               </div>
             </div>
-          </div>
+          </form>
 
           {/* Question Generation Section */}
           <div className="bg-gray-800 rounded-lg p-6 mb-8">
