@@ -168,9 +168,9 @@ const ViewTestResponses = () => {
         doc.text(`Registration: ${response.regNo}`, 14, 105);
         doc.text(`Branch: ${response.branch}`, 14, 115);
         
-        // Add score summary
+        // Add objective score summary
         doc.setFontSize(14);
-        doc.text('Score Summary', 14, 135);
+        doc.text('Objective Score Summary', 14, 135);
         doc.setFontSize(12);
         doc.text(`Final Score: ${response.score.final}`, 14, 145);
         doc.text(`Correct Answers: ${response.score.correct}`, 14, 155);
@@ -179,58 +179,14 @@ const ViewTestResponses = () => {
         doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, 185);
         doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, 195);
         
-        // Add detailed answers section
+        // Add subjective answers if they exist
         let yPosition = 215;
-        doc.setFontSize(14);
-        doc.text('Detailed Answers', 14, yPosition);
-        yPosition += 15;
-        
-        // Add objective questions
-        doc.setFontSize(12);
-        doc.text('Objective Questions:', 14, yPosition);
-        yPosition += 10;
-        
-        testInfo.questions.forEach((question, index) => {
-          if (question.type === 'objective') {
-            if (yPosition > 250) {
-              doc.addPage();
-              yPosition = 20;
-            }
-            
-            doc.setFontSize(10);
-            doc.text(`Q${index + 1}: ${question.text}`, 14, yPosition);
-            yPosition += 10;
-            
-            // Add options
-            question.options.forEach((option, optIndex) => {
-              const isCorrect = option === testInfo.correctAnswers[index];
-              const isSelected = response.answers[index] === option;
-              
-              let optionText = `${String.fromCharCode(65 + optIndex)}) ${option}`;
-              if (isCorrect) optionText += ' ✓';
-              if (isSelected && !isCorrect) optionText += ' ✗';
-              
-              doc.setTextColor(isCorrect ? [0, 128, 0] : isSelected ? [255, 0, 0] : [0, 0, 0]);
-              doc.text(optionText, 20, yPosition);
-              yPosition += 7;
-            });
-            
-            doc.setTextColor(0, 0, 0);
-            yPosition += 10;
-          }
-        });
-        
-        // Add subjective questions if they exist
-        if (testInfo.questions.some(q => q.type === 'subjective')) {
-          if (yPosition > 250) {
-            doc.addPage();
-            yPosition = 20;
-          }
+        if (hasSubjective) {
+          doc.setFontSize(14);
+          doc.text('Subjective Answers', 14, yPosition);
+          yPosition += 15;
           
           doc.setFontSize(12);
-          doc.text('Subjective Questions:', 14, yPosition);
-          yPosition += 10;
-          
           testInfo.questions.forEach((question, index) => {
             if (question.type === 'subjective') {
               if (yPosition > 250) {
@@ -238,18 +194,7 @@ const ViewTestResponses = () => {
                 yPosition = 20;
               }
               
-              doc.setFontSize(10);
-              doc.text(`Q${index + 1}: ${question.text}`, 14, yPosition);
-              yPosition += 10;
-              
-              doc.text('Student\'s Answer:', 14, yPosition);
-              yPosition += 7;
-              doc.text(response.answers[index] || 'No answer provided', 20, yPosition);
-              yPosition += 15;
-              
-              doc.text('Correct Answer:', 14, yPosition);
-              yPosition += 7;
-              doc.text(testInfo.correctAnswers[index], 20, yPosition);
+              doc.text(`Q${index + 1}: ${response.answers[index] || 'No answer provided'}`, 14, yPosition);
               yPosition += 15;
             }
           });
