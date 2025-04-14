@@ -783,7 +783,7 @@ export default function Test() {
                               <img 
                                 src={testData.questions[currentQuestionIndex].image} 
                                 alt="Question image" 
-                                className="w-full max-w-md h-auto object-contain rounded-lg border border-gray-700"
+                                className="w-full h-auto max-w-full object-contain rounded-lg border border-gray-700"
                                 style={{ 
                                   maxHeight: '300px',
                                   width: '100%',
