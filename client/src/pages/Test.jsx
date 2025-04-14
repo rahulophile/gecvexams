@@ -159,6 +159,7 @@ export default function Test() {
               negativeValue = parseFloat(negativeMark) || 0;
             }
             
+            // Subtract negative marking for each incorrect answer
             totalScore -= negativeValue;
           }
         }
@@ -166,6 +167,16 @@ export default function Test() {
 
       // Ensure total score doesn't go below 0
       totalScore = Math.max(0, totalScore);
+
+      // Round the score to 2 decimal places to avoid floating point precision issues
+      totalScore = Math.round(totalScore * 100) / 100;
+
+      console.log('Score Calculation:', {
+        correctAnswers,
+        incorrectAnswers,
+        totalScore,
+        negativeMarking: testData.questions[0]?.negativeMarking
+      });
 
       const response = await fetch('http://localhost:5000/api/submit-test', {
         method: 'POST',
