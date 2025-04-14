@@ -768,22 +768,29 @@ export default function Test() {
                           <p className="text-lg font-medium mb-2">{testData.questions[currentQuestionIndex].text}</p>
                           {testData.questions[currentQuestionIndex].image && (
                             <div className="my-4 w-full flex justify-center">
-                              <img 
-                                src={testData.questions[currentQuestionIndex].image} 
-                                alt="Question image" 
-                                className="w-full max-w-md h-auto object-contain rounded-lg border border-gray-700"
-                                style={{ 
-                                  maxHeight: '300px',
-                                  width: '100%',
-                                  height: 'auto',
-                                  display: 'block'
-                                }}
-                                onError={(e) => {
-                                  console.error('Error loading image:', e);
-                                  e.target.style.display = 'none';
-                                }}
-                                loading="lazy"
-                              />
+                              <div className="relative w-full max-w-2xl mx-auto">
+                                <img 
+                                  src={testData.questions[currentQuestionIndex].image} 
+                                  alt="Question image" 
+                                  className="w-full h-auto object-contain rounded-lg border border-gray-700"
+                                  style={{ 
+                                    maxHeight: '400px',
+                                    width: '100%',
+                                    height: 'auto',
+                                    display: 'block'
+                                  }}
+                                  onError={(e) => {
+                                    console.error('Error loading image:', e);
+                                    e.target.style.display = 'none';
+                                    // Show error message
+                                    const errorDiv = document.createElement('div');
+                                    errorDiv.className = 'text-red-500 text-center p-4 bg-red-100 rounded-lg';
+                                    errorDiv.textContent = 'Failed to load image. Please try refreshing the page.';
+                                    e.target.parentNode.appendChild(errorDiv);
+                                  }}
+                                  loading="lazy"
+                                />
+                              </div>
                             </div>
                           )}
                           <textarea
