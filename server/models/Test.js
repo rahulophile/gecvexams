@@ -20,8 +20,15 @@ const questionSchema = new mongoose.Schema({
     }
   },
   negativeMarking: {
-    type: String, // Can be "1/3", "0.33", "1" etc.
-    default: '0'
+    type: String,
+    default: '0',
+    validate: {
+      validator: function(v) {
+        // Allow fractions (e.g., "1/3"), decimals (e.g., "0.33"), or integers
+        return /^\d*\/?\d*\.?\d*$/.test(v) || v === '0';
+      },
+      message: props => `${props.value} is not a valid negative marking value! Use format like "1/3", "0.33", or "1"`
+    }
   },
   image: {
     type: String
@@ -29,27 +36,50 @@ const questionSchema = new mongoose.Schema({
 });
 
 const testSchema = new mongoose.Schema({
-  title: {
+  roomNumber: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  date: { 
+    type: String, 
+    required: true 
+  },
+  time: { 
+    type: String, 
+    required: true 
+  },
+  duration: { 
+    type: Number, 
+    required: true 
+  },
+  negativeMarking: { 
     type: String,
-    required: true
-  },
-  description: {
-    type: String
-  },
-  duration: {
-    type: Number, // in minutes
-    required: true
+    default: '0',
+    validate: {
+      validator: function(v) {
+        return /^\d*\/?\d*\.?\d*$/.test(v) || v === '0';
+      },
+      message: props => `${props.value} is not a valid negative marking value!`
+    }
   },
   questions: [questionSchema],
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  correctAnswers: { 
+    type: Object, 
+    required: true 
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  submissions: [
+    {
+      studentName: String,
+      branch: String,
+      regNo: String,
+      answers: Object,
+      submittedAt: { 
+        type: Date, 
+        default: Date.now 
+      }
+    }
+  ]
 });
 
-module.exports = mongoose.model('Test', testSchema);
+module.exports = mongoose.models.Test || mongoose.model("Test", testSchema);

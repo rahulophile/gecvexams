@@ -127,57 +127,71 @@ process.on("SIGINT", async () => {
 });
 
 app.post("/api/create-test", async (req, res) => {
-    try {
-      const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
-      
-      // Validate questions array
-      if (!Array.isArray(questions)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Questions must be an array" 
-        });
-      }
-
-      // Process each question
-      const processedQuestions = questions.map(question => {
-        if (question.type === 'subjective' && question.image) {
-          // Ensure the image URL is properly formatted
-          if (!question.image.startsWith('http')) {
-            question.image = `${req.protocol}://${req.get('host')}${question.image}`;
-          }
-        }
-        return question;
-      });
-
-      // Create the test with processed questions
-      const newTest = new TestModel({ 
-        roomNumber, 
-        date, 
-        time, 
-        duration, 
-        negativeMarking, 
-        questions: processedQuestions,
-        correctAnswers: questions.reduce((acc, q, index) => {
-          acc[index] = q.correctAnswer;
-          return acc;
-        }, {})
-      });
-
-      await newTest.save();
-      
-      res.status(201).json({ 
-        success: true, 
-        message: "Test created successfully!",
-        test: newTest
-      });
-    } catch (error) {
-      console.error("Error creating test:", error);
-      res.status(500).json({ 
+  try {
+    const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
+    
+    // Validate questions array
+    if (!Array.isArray(questions)) {
+      return res.status(400).json({ 
         success: false, 
-        message: "Server error",
-        error: error.message 
+        message: "Questions must be an array" 
       });
     }
+
+    // Process each question with proper negative marking
+    const processedQuestions = questions.map(question => {
+      // Ensure negative marking is properly stored
+      if (question.negativeMarking) {
+        // If it's a fraction (e.g., "1/3"), keep it as is
+        if (typeof question.negativeMarking === 'string' && question.negativeMarking.includes('/')) {
+          question.negativeMarking = question.negativeMarking;
+        } 
+        // If it's a number, convert to string
+        else if (typeof question.negativeMarking === 'number') {
+          question.negativeMarking = question.negativeMarking.toString();
+        }
+      } else {
+        question.negativeMarking = '0';
+      }
+
+      if (question.type === 'subjective' && question.image) {
+        // Ensure the image URL is properly formatted
+        if (!question.image.startsWith('http')) {
+          question.image = `${req.protocol}://${req.get('host')}${question.image}`;
+        }
+      }
+      return question;
+    });
+
+    // Create the test with processed questions
+    const newTest = new TestModel({ 
+      roomNumber, 
+      date, 
+      time, 
+      duration, 
+      negativeMarking, 
+      questions: processedQuestions,
+      correctAnswers: questions.reduce((acc, q, index) => {
+        acc[index] = q.correctAnswer;
+        return acc;
+      }, {})
+    });
+
+    await newTest.save();
+    
+    res.status(201).json({ 
+      success: true, 
+      message: "Test created successfully!",
+      test: newTest
+    });
+  } catch (error) {
+    console.error("Error creating test:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error",
+      error: error.message 
+    });
+  }
 });
 
 app.post('/api/submit-test', async (req, res) => {
