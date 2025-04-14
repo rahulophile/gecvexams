@@ -102,46 +102,130 @@ const ViewTestResponses = () => {
     }
 
     try {
-      const doc = new jsPDF();
-      
-      // Add test information
-      doc.setFontSize(16);
-      doc.text('Test Responses', 14, 15);
-      doc.setFontSize(12);
-      doc.text(`Room Number: ${roomNumber}`, 14, 25);
-      doc.text(`Date: ${testInfo.date}`, 14, 35);
-      doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 45);
-      doc.text(`Duration: ${testInfo.duration} minutes`, 14, 55);
-      doc.text(`Marks Per Correct Answer: ${testInfo.marksPerCorrect} marks`, 14, 65);
-      doc.text(`Negative Marking: ${testInfo.negativeMarking} marks per wrong answer`, 14, 75);
-
-      // Add responses
-      responses.forEach((response, index) => {
-        const startY = index === 0 ? 85 : doc.previousAutoTable.finalY + 20;
+      // Create a PDF for each student
+      responses.forEach((response, studentIndex) => {
+        const doc = new jsPDF();
         
-        // Student info
+        // Add header
+        doc.setFontSize(20);
+        doc.setTextColor(0, 0, 0);
+        doc.text('GECV Examination System', 105, 20, { align: 'center' });
+        
+        // Add test information
         doc.setFontSize(14);
-        doc.text(`Student: ${response.studentName}`, 14, startY);
+        doc.text('Test Details', 14, 35);
         doc.setFontSize(12);
-        doc.text(`Registration: ${response.regNo}`, 14, startY + 10);
-        doc.text(`Branch: ${response.branch}`, 14, startY + 20);
+        doc.text(`Room Number: ${roomNumber}`, 14, 45);
+        doc.text(`Date: ${testInfo.date}`, 14, 55);
+        doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 65);
         
-        // Score information
-        doc.text(`Final Score: ${response.score.final}`, 14, startY + 30);
-        doc.text(`Correct Answers: ${response.score.correct}`, 14, startY + 40);
-        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, startY + 50);
-        doc.text(`Marks Per Correct: ${response.score.marksPerCorrect}`, 14, startY + 60);
-        doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, startY + 70);
-        doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, startY + 80);
-        doc.text(`(Score calculated as: ${response.score.marksForCorrect} - ${response.score.marksDeducted} = ${response.score.final})`, 14, startY + 90);
-
-        // Add page break if not the last response
-        if (index < responses.length - 1) {
-          doc.addPage();
+        // Add student information
+        doc.setFontSize(14);
+        doc.text('Student Information', 14, 85);
+        doc.setFontSize(12);
+        doc.text(`Name: ${response.studentName}`, 14, 95);
+        doc.text(`Registration: ${response.regNo}`, 14, 105);
+        doc.text(`Branch: ${response.branch}`, 14, 115);
+        
+        // Add score summary
+        doc.setFontSize(14);
+        doc.text('Score Summary', 14, 135);
+        doc.setFontSize(12);
+        doc.text(`Final Score: ${response.score.final}`, 14, 145);
+        doc.text(`Correct Answers: ${response.score.correct}`, 14, 155);
+        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, 165);
+        doc.text(`Marks Per Correct: ${response.score.marksPerCorrect}`, 14, 175);
+        doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, 185);
+        doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, 195);
+        
+        // Add detailed answers section
+        let yPosition = 215;
+        doc.setFontSize(14);
+        doc.text('Detailed Answers', 14, yPosition);
+        yPosition += 15;
+        
+        // Add objective questions
+        doc.setFontSize(12);
+        doc.text('Objective Questions:', 14, yPosition);
+        yPosition += 10;
+        
+        testInfo.questions.forEach((question, index) => {
+          if (question.type === 'objective') {
+            if (yPosition > 250) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            doc.setFontSize(10);
+            doc.text(`Q${index + 1}: ${question.text}`, 14, yPosition);
+            yPosition += 10;
+            
+            // Add options
+            question.options.forEach((option, optIndex) => {
+              const isCorrect = option === testInfo.correctAnswers[index];
+              const isSelected = response.answers[index] === option;
+              
+              let optionText = `${String.fromCharCode(65 + optIndex)}) ${option}`;
+              if (isCorrect) optionText += ' ✓';
+              if (isSelected && !isCorrect) optionText += ' ✗';
+              
+              doc.setTextColor(isCorrect ? [0, 128, 0] : isSelected ? [255, 0, 0] : [0, 0, 0]);
+              doc.text(optionText, 20, yPosition);
+              yPosition += 7;
+            });
+            
+            doc.setTextColor(0, 0, 0);
+            yPosition += 10;
+          }
+        });
+        
+        // Add subjective questions if they exist
+        if (testInfo.questions.some(q => q.type === 'subjective')) {
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFontSize(12);
+          doc.text('Subjective Questions:', 14, yPosition);
+          yPosition += 10;
+          
+          testInfo.questions.forEach((question, index) => {
+            if (question.type === 'subjective') {
+              if (yPosition > 250) {
+                doc.addPage();
+                yPosition = 20;
+              }
+              
+              doc.setFontSize(10);
+              doc.text(`Q${index + 1}: ${question.text}`, 14, yPosition);
+              yPosition += 10;
+              
+              doc.text('Student\'s Answer:', 14, yPosition);
+              yPosition += 7;
+              doc.text(response.answers[index] || 'No answer provided', 20, yPosition);
+              yPosition += 15;
+              
+              doc.text('Correct Answer:', 14, yPosition);
+              yPosition += 7;
+              doc.text(testInfo.correctAnswers[index], 20, yPosition);
+              yPosition += 15;
+            }
+          });
         }
+        
+        // Add footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(100);
+          doc.text('GECV Examination System - Design and Developed by Rahul Raj', 105, 285, { align: 'center' });
+        }
+        
+        // Save the PDF
+        doc.save(`test_response_${response.regNo}_${roomNumber}.pdf`);
       });
-
-      doc.save(`test_responses_${roomNumber}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       setAlert({
