@@ -330,27 +330,27 @@ const ViewTestResponses = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-400">Room Number</p>
-                  <p className="font-medium">{testInfo.roomNumber}</p>
+                  <p className="font-medium">{testInfo.roomNumber || 'Not Available'}</p>
                 </div>
                 <div>
                   <p className="text-gray-400">Date</p>
-                  <p className="font-medium">{testInfo.date}</p>
+                  <p className="font-medium">{testInfo.date || 'Not Available'}</p>
                 </div>
                 <div>
                   <p className="text-gray-400">Time</p>
-                  <p className="font-medium">{formatTo12Hour(testInfo.time)}</p>
+                  <p className="font-medium">{formatTo12Hour(testInfo.time) || 'Not Available'}</p>
                 </div>
                 <div>
                   <p className="text-gray-400">Duration</p>
-                  <p className="font-medium">{testInfo.duration} minutes</p>
+                  <p className="font-medium">{testInfo.duration || 0} minutes</p>
                 </div>
                 <div>
                   <p className="text-gray-400">Marks Per Correct Answer</p>
-                  <p className="font-medium">{testInfo.marksPerCorrect} marks</p>
+                  <p className="font-medium">{testInfo.marksPerCorrect || 0} marks</p>
                 </div>
                 <div>
                   <p className="text-gray-400">Negative Marking</p>
-                  <p className="font-medium">{testInfo.negativeMarking} marks per wrong answer</p>
+                  <p className="font-medium">{testInfo.negativeMarking || 0} marks per wrong answer</p>
                 </div>
               </div>
             </div>
@@ -381,9 +381,9 @@ const ViewTestResponses = () => {
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Student Information</h3>
                       <div className="space-y-2">
-                        <p><span className="text-gray-400">Name:</span> {response.studentName}</p>
-                        <p><span className="text-gray-400">Registration:</span> {response.regNo}</p>
-                        <p><span className="text-gray-400">Branch:</span> {response.branch}</p>
+                        <p><span className="text-gray-400">Name:</span> {response.studentName || 'Not Available'}</p>
+                        <p><span className="text-gray-400">Registration:</span> {response.regNo || 'Not Available'}</p>
+                        <p><span className="text-gray-400">Branch:</span> {response.branch || 'Not Available'}</p>
                       </div>
                     </div>
 
@@ -391,14 +391,14 @@ const ViewTestResponses = () => {
                     <div className="bg-gray-700 p-4 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">Score Information</h3>
                       <div className="space-y-2">
-                        <p><span className="text-gray-400">Final Score:</span> {response.score.final}</p>
-                        <p><span className="text-gray-400">Correct Answers:</span> {response.score.correct}</p>
-                        <p><span className="text-gray-400">Incorrect Answers:</span> {response.score.incorrect}</p>
-                        <p><span className="text-gray-400">Marks Per Correct:</span> {response.score.marksPerCorrect}</p>
-                        <p><span className="text-gray-400">Marks Awarded:</span> {response.score.marksForCorrect}</p>
-                        <p><span className="text-gray-400">Marks Deducted:</span> {response.score.marksDeducted}</p>
+                        <p><span className="text-gray-400">Final Score:</span> {response.score?.final || 0}</p>
+                        <p><span className="text-gray-400">Correct Answers:</span> {response.score?.correct || 0}</p>
+                        <p><span className="text-gray-400">Incorrect Answers:</span> {response.score?.incorrect || 0}</p>
+                        <p><span className="text-gray-400">Marks Per Correct:</span> {response.score?.marksPerCorrect || 0}</p>
+                        <p><span className="text-gray-400">Marks Awarded:</span> {response.score?.marksForCorrect || 0}</p>
+                        <p><span className="text-gray-400">Marks Deducted:</span> {response.score?.marksDeducted || 0}</p>
                         <p className="text-sm text-gray-400 mt-2">
-                          Score calculation: {response.score.marksForCorrect} - {response.score.marksDeducted} = {response.score.final}
+                          Score calculation: {response.score?.marksForCorrect || 0} - {response.score?.marksDeducted || 0} = {response.score?.final || 0}
                         </p>
                       </div>
                     </div>
@@ -409,25 +409,25 @@ const ViewTestResponses = () => {
                     <h3 className="text-lg font-semibold mb-4">Student Answers</h3>
                     <div className="space-y-4">
                       {/* Objective Questions */}
-                      {testInfo.questions.filter(q => q.type === 'objective').map((question, index) => (
+                      {testInfo?.questions?.filter(q => q.type === 'objective').map((question, index) => (
                         <div key={index} className="bg-gray-700 p-4 rounded-lg">
-                          <p className="font-medium mb-2">Question {index + 1}: {question.text}</p>
+                          <p className="font-medium mb-2">Question {index + 1}: {question.text || 'Not Available'}</p>
                           <div className="space-y-2">
-                            {question.options.map((option, optIndex) => (
+                            {question.options?.map((option, optIndex) => (
                               <div 
                                 key={optIndex}
                                 className={`p-2 rounded ${
-                                  response.answers[index] === option
-                                    ? response.answers[index] === testInfo.correctAnswers[index]
+                                  response.answers?.[index] === option
+                                    ? response.answers?.[index] === testInfo.correctAnswers?.[index]
                                       ? 'bg-green-900/50 border border-green-500'
                                       : 'bg-red-900/50 border border-red-500'
                                     : 'bg-gray-800'
                                 }`}
                               >
                                 {option}
-                                {response.answers[index] === option && (
+                                {response.answers?.[index] === option && (
                                   <span className="ml-2">
-                                    {response.answers[index] === testInfo.correctAnswers[index] ? '✓' : '✗'}
+                                    {response.answers?.[index] === testInfo.correctAnswers?.[index] ? '✓' : '✗'}
                                   </span>
                                 )}
                               </div>
@@ -437,11 +437,11 @@ const ViewTestResponses = () => {
                       ))}
 
                       {/* Subjective Questions */}
-                      {testInfo.questions.filter(q => q.type === 'subjective').map((question, index) => {
+                      {testInfo?.questions?.filter(q => q.type === 'subjective').map((question, index) => {
                         const objIndex = testInfo.questions.findIndex(q => q.type === 'subjective');
                         return (
                           <div key={index} className="bg-gray-700 p-4 rounded-lg">
-                            <p className="font-medium mb-2">Question {objIndex + 1}: {question.text}</p>
+                            <p className="font-medium mb-2">Question {objIndex + 1}: {question.text || 'Not Available'}</p>
                             {question.image && (
                               <img 
                                 src={question.image} 
@@ -451,11 +451,11 @@ const ViewTestResponses = () => {
                             )}
                             <div className="bg-gray-800 p-3 rounded">
                               <p className="text-gray-400 mb-1">Student's Answer:</p>
-                              <p>{response.answers[objIndex] || 'No answer provided'}</p>
+                              <p>{response.answers?.[objIndex] || 'No answer provided'}</p>
                             </div>
                             <div className="mt-2 bg-gray-800 p-3 rounded">
                               <p className="text-gray-400 mb-1">Correct Answer:</p>
-                              <p>{testInfo.correctAnswers[objIndex]}</p>
+                              <p>{testInfo.correctAnswers?.[objIndex] || 'Not Available'}</p>
                             </div>
                           </div>
                         );
