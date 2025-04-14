@@ -155,7 +155,7 @@ export default function Home() {
             GEC Vaishali Live Test
           </h1>
           <p className="text-xl text-gray-300">
-            Join our coding challenges and test your skills!
+            Join our challenges and test your skills!
           </p>
         </div>
 
