@@ -19,6 +19,7 @@ const TestSchema = new mongoose.Schema({
   time: { type: String, required: true },
   duration: { type: Number, required: true },
   negativeMarking: { type: Number, required: true },
+  marksPerCorrect: { type: Number, required: true, default: 1 },
   questions: [{
     type: { 
       type: String, 
@@ -45,7 +46,10 @@ const TestSchema = new mongoose.Schema({
         correct: Number,
         incorrect: Number,
         final: Number,
-        negativeMarking: Number
+        negativeMarking: Number,
+        marksPerCorrect: Number,
+        marksForCorrect: Number,
+        marksDeducted: Number
       }
     }
   ]
@@ -283,7 +287,8 @@ router.post("/submit-test", async (req, res) => {
     });
 
     // Calculate final score with marks per correct and negative marking
-    const marksForCorrect = correctAnswers * test.marksPerCorrect;
+    const marksPerCorrect = test.marksPerCorrect || 1; // Default to 1 if not set
+    const marksForCorrect = correctAnswers * marksPerCorrect;
     const marksDeducted = test.negativeMarking * incorrectAnswers;
     const finalScore = marksForCorrect - marksDeducted;
     const adjustedScore = Math.max(0, finalScore);
@@ -300,7 +305,7 @@ router.post("/submit-test", async (req, res) => {
         incorrect: incorrectAnswers,
         final: adjustedScore,
         negativeMarking: test.negativeMarking,
-        marksPerCorrect: test.marksPerCorrect,
+        marksPerCorrect: marksPerCorrect,
         marksForCorrect: marksForCorrect,
         marksDeducted: marksDeducted
       }
