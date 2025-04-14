@@ -145,16 +145,18 @@ export default function Test() {
           } else if (userAnswer !== undefined) {
             incorrectAnswers++;
             // Calculate negative marking based on the format (numerator/denominator or decimal)
-            const negativeMark = question.negativeMarking || 0;
+            const negativeMark = question.negativeMarking || '0';
             let negativeValue = 0;
             
-            if (typeof negativeMark === 'string' && negativeMark.includes('/')) {
+            if (negativeMark.includes('/')) {
               // Handle fraction format (e.g., "1/3")
               const [numerator, denominator] = negativeMark.split('/').map(Number);
-              negativeValue = numerator / denominator;
+              if (denominator !== 0) {
+                negativeValue = numerator / denominator;
+              }
             } else {
               // Handle decimal or integer format
-              negativeValue = parseFloat(negativeMark);
+              negativeValue = parseFloat(negativeMark) || 0;
             }
             
             totalScore -= negativeValue;

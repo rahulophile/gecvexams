@@ -402,15 +402,26 @@ export default function CreateTest() {
                   className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              <div>
-                <label className="block text-gray-400 mb-2">Negative Marking</label>
-                <input 
-                  type="number" 
-                  placeholder="Points per wrong answer" 
-                  value={negativeMarking} 
-                  onChange={(e) => setNegativeMarking(e.target.value)}
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Negative Marking</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={negativeMarking}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow fractions (e.g., "1/3"), decimals (e.g., "0.33"), or integers
+                      if (/^\d*\/?\d*\.?\d*$/.test(value) || value === '') {
+                        setNegativeMarking(value);
+                      }
+                    }}
+                    placeholder="Enter negative marking (e.g., 1/3 or 0.33)"
+                    className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <div className="text-xs text-gray-500">
+                    Format: fraction (1/3) or decimal (0.33)
+                  </div>
+                </div>
               </div>
             </div>
           </div>
