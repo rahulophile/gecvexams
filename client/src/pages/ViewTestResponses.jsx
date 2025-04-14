@@ -211,15 +211,9 @@ const ViewTestResponses = () => {
                   <p className="font-medium">{testInfo.totalQuestions}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Objective Questions</p>
-                  <p className="font-medium">{testInfo.objectiveQuestions}</p>
+                  <p className="text-gray-400">Negative Marking</p>
+                  <p className="font-medium">{testInfo.negativeMarking} marks per wrong answer</p>
                 </div>
-                {testInfo.hasSubjective && (
-                  <div>
-                    <p className="text-gray-400">Subjective Questions</p>
-                    <p className="font-medium">{testInfo.subjectiveQuestions}</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -249,11 +243,20 @@ const ViewTestResponses = () => {
                     <div>
                       <h3 className="text-xl font-semibold">{response.studentName}</h3>
                       <p className="text-gray-400">Registration: {response.regNo}</p>
+                      <p className="text-gray-400">Branch: {response.branch}</p>
                     </div>
-                    <div className="bg-blue-900/50 px-3 py-1 rounded-full">
-                      <span className="text-blue-200">
-                        Score: {response.objectiveScore}/{response.totalObjective}
-                      </span>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold">
+                        Score: {response.finalScore}/{response.totalQuestions}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Correct: {response.correctAnswers} | Wrong: {response.incorrectAnswers}
+                      </p>
+                      {response.incorrectAnswers > 0 && (
+                        <p className="text-sm text-red-400">
+                          Deducted: {response.incorrectAnswers * response.negativeMarking} marks
+                        </p>
+                      )}
                     </div>
                   </div>
 

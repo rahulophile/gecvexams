@@ -615,6 +615,54 @@ export default function Test() {
     }
   };
 
+  // Add this new function to show test instructions
+  const showTestInstructions = () => {
+    if (!testData) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4">
+          <h2 className="text-2xl font-bold mb-4">Test Instructions</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">General Instructions:</h3>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>You have {testData.duration} minutes to complete the test.</li>
+                <li>Do not switch tabs or windows during the test.</li>
+                <li>Do not use any external resources.</li>
+                <li>Do not copy/paste or take screenshots.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Scoring Information:</h3>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>Each correct answer gives you 1 mark.</li>
+                <li>Each wrong answer deducts {testData.negativeMarking} marks.</li>
+                <li>Unanswered questions do not affect your score.</li>
+                <li>Your final score cannot go below 0.</li>
+              </ul>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-4">
+              <button
+                onClick={() => {
+                  setShowEntryPopup(false);
+                  enterFullscreen();
+                  setTestStarted(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition duration-200"
+              >
+                Start Test
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -962,39 +1010,7 @@ export default function Test() {
       />
 
       {/* Entry Popup - Show after student details */}
-      {showEntryPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Test Instructions</h2>
-              <button
-                onClick={() => {
-                  setShowEntryPopup(false);
-                  setTestStarted(true);
-                  setTimeLeft(testData.duration * 60);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              <p className="text-gray-600">
-                Please read the following instructions carefully:
-              </p>
-              <ul className="list-disc list-inside text-gray-600 space-y-2">
-                <li>Do not switch tabs or windows during the test</li>
-                <li>Do not use any external resources</li>
-                <li>Complete all questions within the time limit</li>
-                <li>Keyboard shortcuts are disabled during the test</li>
-                <li>You can only type in the answer box for subjective questions</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
+      {showEntryPopup && showTestInstructions()}
 
       {/* Submission Popup */}
       {showSubmissionPopup && (

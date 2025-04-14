@@ -40,7 +40,13 @@ const TestSchema = new mongoose.Schema({
       branch: String,
       regNo: String,
       answers: Object,
-      submittedAt: { type: Date, default: Date.now }
+      submittedAt: { type: Date, default: Date.now },
+      score: {
+        correct: Number,
+        incorrect: Number,
+        final: Number,
+        negativeMarking: Number
+      }
     }
   ]
 });
@@ -252,8 +258,36 @@ router.post("/submit-test", async (req, res) => {
   try {
     const { roomNumber, userDetails, answers } = req.body;
     
-    // Find and update in one operation
-    const test = await TestModel.findOneAndUpdate(
+    // Find the test first to get negative marking
+    const test = await TestModel.findOne({ roomNumber });
+    if (!test) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Test not found" 
+      });
+    }
+
+    // Calculate score
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    
+    // Process each answer
+    test.questions.forEach((question, index) => {
+      if (question.type === 'objective' && answers[index] !== undefined) {
+        if (answers[index] === test.correctAnswers[index]) {
+          correctAnswers++;
+        } else {
+          incorrectAnswers++;
+        }
+      }
+    });
+
+    // Calculate final score with negative marking
+    const finalScore = correctAnswers - (test.negativeMarking * incorrectAnswers);
+    const adjustedScore = Math.max(0, finalScore);
+
+    // Update the test with submission and score
+    const updatedTest = await TestModel.findOneAndUpdate(
       { roomNumber: roomNumber },
       {
         $push: {
@@ -262,23 +296,28 @@ router.post("/submit-test", async (req, res) => {
             branch: userDetails.branch,
             regNo: userDetails.regNo,
             answers: answers,
-            submittedAt: new Date()
+            submittedAt: new Date(),
+            score: {
+              correct: correctAnswers,
+              incorrect: incorrectAnswers,
+              final: adjustedScore,
+              negativeMarking: test.negativeMarking
+            }
           }
         }
       },
       { new: true }
     );
 
-    if (!test) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Test not found" 
-      });
-    }
-
     res.json({ 
       success: true, 
-      message: "Test submitted successfully" 
+      message: "Test submitted successfully",
+      score: {
+        correct: correctAnswers,
+        incorrect: incorrectAnswers,
+        final: adjustedScore,
+        negativeMarking: test.negativeMarking
+      }
     });
 
   } catch (error) {

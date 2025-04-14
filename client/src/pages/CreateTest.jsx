@@ -175,12 +175,14 @@ export default function CreateTest() {
         return;
       }
 
-      if (negativeMarking === "") {
+      // Validate negative marking
+      const parsedNegativeMarking = parseFloat(negativeMarking);
+      if (isNaN(parsedNegativeMarking) || parsedNegativeMarking < 0) {
         setAlert({
           show: true,
           type: "warning",
-          title: "Missing Field",
-          message: "Please enter negative marking value"
+          title: "Invalid Negative Marking",
+          message: "Negative marking must be a non-negative number (can be decimal)"
         });
         return;
       }
@@ -252,7 +254,7 @@ export default function CreateTest() {
         date,
         time,
         duration: Number(duration),
-        negativeMarking: Number(negativeMarking),
+        negativeMarking: parsedNegativeMarking,
         questions: preparedQuestions
       };
 
@@ -403,25 +405,19 @@ export default function CreateTest() {
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Negative Marking</label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={negativeMarking}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Allow fractions (e.g., "1/3"), decimals (e.g., "0.33"), or integers
-                      if (/^\d*\/?\d*\.?\d*$/.test(value) || value === '') {
-                        setNegativeMarking(value);
-                      }
-                    }}
-                    placeholder="Enter negative marking (e.g., 1/3 or 0.33)"
-                    className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <div className="text-xs text-gray-500">
-                    Format: fraction (1/3) or decimal (0.33)
-                  </div>
-                </div>
+                <label className="block text-gray-300 mb-2">Negative Marking</label>
+                <input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={negativeMarking}
+                  onChange={(e) => setNegativeMarking(e.target.value)}
+                  placeholder="Enter negative marking (e.g., 0.25, 0.5, 1)"
+                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-sm text-gray-400 mt-1">
+                  Enter the marks to be deducted for each wrong answer (can be decimal)
+                </p>
               </div>
             </div>
           </div>
