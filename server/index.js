@@ -39,7 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://examgecv.onrender.com",
     methods: "GET,POST,PUT,DELETE",
     credentials: true,
   })
