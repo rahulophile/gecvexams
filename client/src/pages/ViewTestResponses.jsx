@@ -52,6 +52,7 @@ const ViewTestResponses = () => {
         return;
       }
       
+      console.log('Fetching responses for room:', roomNumber);
       const res = await fetch(`https://exam-server-gecv.onrender.com/api/get-test-responses/${roomNumber}`, {
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -60,15 +61,55 @@ const ViewTestResponses = () => {
       });
 
       const data = await res.json();
+      console.log('Server response:', data);
 
       if (!res.ok) {
         throw new Error(data.message || "Failed to fetch responses");
       }
 
       if (data.success) {
-        setResponses(data.responses);
-        setHasSubjective(data.hasSubjective);
-        setTestInfo(data.testDetails);
+        // Validate response structure
+        if (!Array.isArray(data.responses)) {
+          throw new Error("Invalid response format: responses should be an array");
+        }
+
+        // Validate each response
+        const validResponses = data.responses.map(response => {
+          if (!response || typeof response !== 'object') {
+            console.warn('Invalid response object:', response);
+            return null;
+          }
+
+          return {
+            studentName: response.studentName || 'N/A',
+            regNo: response.regNo || 'N/A',
+            branch: response.branch || 'N/A',
+            answers: response.answers || {},
+            score: {
+              correct: response.score?.correct || 0,
+              incorrect: response.score?.incorrect || 0,
+              final: response.score?.final || 0,
+              negativeMarking: response.score?.negativeMarking || 0,
+              marksPerCorrect: response.score?.marksPerCorrect || 0,
+              marksForCorrect: response.score?.marksForCorrect || 0,
+              marksDeducted: response.score?.marksDeducted || 0
+            }
+          };
+        }).filter(Boolean);
+
+        console.log('Processed responses:', validResponses);
+        setResponses(validResponses);
+        setHasSubjective(data.hasSubjective || false);
+        setTestInfo({
+          roomNumber: data.testDetails?.roomNumber || '',
+          date: data.testDetails?.date || '',
+          time: data.testDetails?.time || '',
+          duration: data.testDetails?.duration || 0,
+          negativeMarking: data.testDetails?.negativeMarking || 0,
+          marksPerCorrect: data.testDetails?.marksPerCorrect || 0,
+          questions: data.testDetails?.questions || [],
+          correctAnswers: data.testDetails?.correctAnswers || {}
+        });
       } else {
         setAlert({
           show: true,

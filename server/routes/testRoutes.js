@@ -564,32 +564,36 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
       return {
         studentName: submission.studentName || 'N/A',
         regNo: submission.regNo || 'N/A',
-        correctAnswers,
-        incorrectAnswers,
-        finalScore: adjustedScore,
-        totalQuestions: test.questions.filter(q => q.type === 'objective').length,
-        negativeMarking: test.negativeMarking,
-        marksPerCorrect: marksPerCorrect,
-        marksForCorrect: marksForCorrect,
-        marksDeducted: marksDeducted,
-        ...(hasSubjective && {
-          subjectiveAnswers
-        })
+        branch: submission.branch || 'N/A',
+        answers: submission.answers || {},
+        score: {
+          correct: correctAnswers,
+          incorrect: incorrectAnswers,
+          final: adjustedScore,
+          negativeMarking: test.negativeMarking,
+          marksPerCorrect: marksPerCorrect,
+          marksForCorrect: marksForCorrect,
+          marksDeducted: marksDeducted
+        }
       };
     });
 
     // Sort responses by final score
-    const sortedResponses = responses.sort((a, b) => b.finalScore - a.finalScore);
+    const sortedResponses = responses.sort((a, b) => b.score.final - a.score.final);
 
     res.json({ 
       success: true, 
       responses: sortedResponses,
+      hasSubjective,
       testDetails: {
         roomNumber: test.roomNumber,
         date: test.date,
         time: test.time,
+        duration: test.duration,
         negativeMarking: test.negativeMarking,
-        marksPerCorrect: test.marksPerCorrect
+        marksPerCorrect: test.marksPerCorrect,
+        questions: test.questions,
+        correctAnswers: test.correctAnswers
       }
     });
 
