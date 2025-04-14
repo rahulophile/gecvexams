@@ -782,11 +782,13 @@ export default function Test() {
                                   onError={(e) => {
                                     console.error('Error loading image:', e);
                                     e.target.style.display = 'none';
-                                    // Show error message
                                     const errorDiv = document.createElement('div');
                                     errorDiv.className = 'text-red-500 text-center p-4 bg-red-100 rounded-lg';
                                     errorDiv.textContent = 'Failed to load image. Please try refreshing the page.';
                                     e.target.parentNode.appendChild(errorDiv);
+                                    
+                                    // Log the image URL for debugging
+                                    console.log('Failed image URL:', testData.questions[currentQuestionIndex].image);
                                   }}
                                   loading="lazy"
                                 />

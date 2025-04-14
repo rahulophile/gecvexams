@@ -46,15 +46,25 @@ const upload = multer({
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
 
+// Configure CORS
 app.use(
   cors({
-    origin: "https://examgecv.onrender.com",
+    origin: ["http://localhost:5173", "https://examgecv.onrender.com"],
     methods: "GET,POST,PUT,DELETE",
     credentials: true,
   })
 );
+
+// Serve static files from uploads directory with proper caching
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '1d',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
 
 // Validate Environment Variables
 if (!process.env.MONGO_URI) {
@@ -84,22 +94,13 @@ app.post("/api/upload-image", upload.single('image'), (req, res) => {
     
     // Return the full URL including the server's base URL
     const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    console.log('Uploaded image URL:', imageUrl); // Debug log
     res.json({ success: true, imageUrl });
   } catch (error) {
     console.error('Error uploading image:', error);
     res.status(500).json({ success: false, message: 'Error uploading image' });
   }
 });
-
-// Serve static files from uploads directory with proper caching
-app.use('/uploads', express.static('uploads', {
-  maxAge: '1d',
-  setHeaders: (res, path) => {
-    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png')) {
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-    }
-  }
-}));
 
 // Error handling middleware for multer
 app.use((err, req, res, next) => {
