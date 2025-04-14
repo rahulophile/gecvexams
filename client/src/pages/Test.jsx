@@ -736,45 +736,37 @@ export default function Test() {
                         Q{currentQuestionIndex + 1}: {testData.questions[currentQuestionIndex].text}
                       </h2>
                       {testData.questions[currentQuestionIndex].type === "objective" && (
-                        <div className="space-y-2">
-                          {testData.questions[currentQuestionIndex].options.map((option, optionIndex) => {
-                            const isSelected = selectedAnswers[currentQuestionIndex] === option;
-                            
-                            return (
+                        <div className="mb-1">
+                          <p className="text-xs md:text-sm font-medium mb-0.5">{testData.questions[currentQuestionIndex].text}</p>
+                          <div className="space-y-0.5">
+                            {testData.questions[currentQuestionIndex].options.map((option, optionIndex) => (
                               <div 
-                                key={`question-${currentQuestionIndex}-option-${optionIndex}`}
-                                className={`p-3 rounded-lg border cursor-pointer transition-colors break-words whitespace-pre-wrap ${
-                                  isSelected ? 'bg-blue-100 border-blue-500' : 'hover:bg-gray-50 border-gray-200'
+                                key={optionIndex} 
+                                className={`p-1 rounded-lg cursor-pointer transition-colors ${
+                                  selectedAnswers[currentQuestionIndex] === optionIndex
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-800 hover:bg-gray-700'
                                 }`}
-                                onClick={() => handleAnswerChange(currentQuestionIndex, option)}
+                                onClick={() => handleAnswerChange(currentQuestionIndex, optionIndex)}
                               >
-                                <div className="flex items-center">
-                                  <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
-                                    isSelected ? 'border-blue-500' : 'border-gray-400'
-                                  }`}>
-                                    {isSelected && (
-                                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                    )}
-                                  </div>
-                                  <span className="text-gray-700">{option}</span>
-                                </div>
+                                <span className="text-xs">{option}</span>
                               </div>
-                            );
-                          })}
+                            ))}
+                          </div>
                         </div>
                       )}
                       {testData.questions[currentQuestionIndex].type === 'subjective' && (
-                        <div className="mb-6">
-                          <p className="text-lg font-medium mb-2">{testData.questions[currentQuestionIndex].text}</p>
+                        <div className="mb-1">
+                          <p className="text-xs md:text-sm font-medium mb-0.5">{testData.questions[currentQuestionIndex].text}</p>
                           {testData.questions[currentQuestionIndex].image && (
-                            <div className="my-4 w-full flex justify-center">
+                            <div className="mt-0.5 w-full flex justify-center">
                               <div className="relative w-full max-w-2xl mx-auto">
                                 <img 
                                   src={testData.questions[currentQuestionIndex].image} 
                                   alt="Question image" 
                                   className="w-full h-auto object-contain rounded-lg border border-gray-700"
                                   style={{ 
-                                    maxHeight: '400px',
+                                    maxHeight: '250px',
                                     width: '100%',
                                     height: 'auto',
                                     display: 'block'
@@ -783,27 +775,15 @@ export default function Test() {
                                     console.error('Error loading image:', e);
                                     e.target.style.display = 'none';
                                     const errorDiv = document.createElement('div');
-                                    errorDiv.className = 'text-red-500 text-center p-4 bg-red-100 rounded-lg';
+                                    errorDiv.className = 'text-red-500 text-center p-1 bg-red-100 rounded-lg text-xs';
                                     errorDiv.textContent = 'Failed to load image. Please try refreshing the page.';
                                     e.target.parentNode.appendChild(errorDiv);
-                                    
-                                    // Log the image URL for debugging
-                                    console.log('Failed image URL:', testData.questions[currentQuestionIndex].image);
                                   }}
                                   loading="lazy"
                                 />
                               </div>
                             </div>
                           )}
-                          <textarea
-                            value={subjectiveAnswers[currentQuestionIndex] || ''}
-                            onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
-                            onFocus={() => setIsTextareaFocused(true)}
-                            onBlur={() => setIsTextareaFocused(false)}
-                            placeholder="Enter your answer here"
-                            className="w-full p-3 border rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            style={{ minHeight: '100px', maxHeight: '200px' }}
-                          />
                         </div>
                       )}
                       <div className="mt-4 flex flex-wrap gap-2">
