@@ -83,7 +83,7 @@ app.post("/api/upload-image", upload.single('image'), (req, res) => {
     }
     
     // Return the full URL including the server's base URL
-    const imageUrl = `http://localhost:8080/uploads/${req.file.filename}`;
+    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     res.json({ success: true, imageUrl });
   } catch (error) {
     console.error('Error uploading image:', error);
@@ -91,8 +91,15 @@ app.post("/api/upload-image", upload.single('image'), (req, res) => {
   }
 });
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static('uploads'));
+// Serve static files from uploads directory with proper caching
+app.use('/uploads', express.static('uploads', {
+  maxAge: '1d',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
 
 // Error handling middleware for multer
 app.use((err, req, res, next) => {

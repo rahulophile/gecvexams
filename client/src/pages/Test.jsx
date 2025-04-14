@@ -628,7 +628,7 @@ export default function Test() {
   }
 
   return (
-    <div ref={testContainerRef} className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div ref={testContainerRef} className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-y-auto">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="animate-float1 absolute -top-4 -left-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
