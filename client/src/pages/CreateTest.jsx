@@ -8,6 +8,7 @@ export default function CreateTest() {
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("");
   const [negativeMarking, setNegativeMarking] = useState("");
+  const [marksPerCorrect, setMarksPerCorrect] = useState("1");
   const [questionType, setQuestionType] = useState("objective");
   const [numObjective, setNumObjective] = useState(0);
   const [numSubjective, setNumSubjective] = useState(0);
@@ -132,184 +133,190 @@ export default function CreateTest() {
     }
   };
 
-  const createTest = async () => {
-    try {
-      // Detailed validation
-      if (!roomNumber.trim()) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate negative marking
+    const negativeMarkingValue = parseFloat(negativeMarking);
+    if (isNaN(negativeMarkingValue) || negativeMarkingValue < 0) {
+      setAlert({
+        show: true,
+        type: "error",
+        title: "Invalid Negative Marking",
+        message: "Negative marking must be a non-negative number"
+      });
+      return;
+    }
+
+    // Validate marks per correct
+    const marksPerCorrectValue = parseFloat(marksPerCorrect);
+    if (isNaN(marksPerCorrectValue) || marksPerCorrectValue <= 0) {
+      setAlert({
+        show: true,
+        type: "error",
+        title: "Invalid Marks Per Correct",
+        message: "Marks per correct answer must be a positive number"
+      });
+      return;
+    }
+
+    // Detailed validation
+    if (!roomNumber.trim()) {
+      setAlert({
+        show: true,
+        type: "warning",
+        title: "Missing Field",
+        message: "Please enter a room number"
+      });
+      return;
+    }
+
+    if (!date) {
+      setAlert({
+        show: true,
+        type: "warning",
+        title: "Missing Field",
+        message: "Please select a test date"
+      });
+      return;
+    }
+
+    if (!time) {
+      setAlert({
+        show: true,
+        type: "warning",
+        title: "Missing Field",
+        message: "Please select a test time"
+      });
+      return;
+    }
+
+    if (!duration || duration <= 0) {
+      setAlert({
+        show: true,
+        type: "warning",
+        title: "Invalid Duration",
+        message: "Please enter a valid test duration"
+      });
+      return;
+    }
+
+    if (questions.length === 0) {
+      setAlert({
+        show: true,
+        type: "warning",
+        title: "No Questions",
+        message: "Please generate and fill at least one question"
+      });
+      return;
+    }
+
+    // Validate each question
+    for (let i = 0; i < questions.length; i++) {
+      if (!questions[i].text.trim()) {
         setAlert({
           show: true,
           type: "warning",
-          title: "Missing Field",
-          message: "Please enter a room number"
+          title: "Incomplete Question",
+          message: `Question ${i + 1} is empty`
         });
         return;
       }
 
-      if (!date) {
-        setAlert({
-          show: true,
-          type: "warning",
-          title: "Missing Field",
-          message: "Please select a test date"
-        });
-        return;
-      }
-
-      if (!time) {
-        setAlert({
-          show: true,
-          type: "warning",
-          title: "Missing Field",
-          message: "Please select a test time"
-        });
-        return;
-      }
-
-      if (!duration || duration <= 0) {
-        setAlert({
-          show: true,
-          type: "warning",
-          title: "Invalid Duration",
-          message: "Please enter a valid test duration"
-        });
-        return;
-      }
-
-      // Validate negative marking
-      const parsedNegativeMarking = parseFloat(negativeMarking);
-      if (isNaN(parsedNegativeMarking) || parsedNegativeMarking < 0) {
-        setAlert({
-          show: true,
-          type: "warning",
-          title: "Invalid Negative Marking",
-          message: "Negative marking must be a non-negative number (can be decimal)"
-        });
-        return;
-      }
-
-      if (questions.length === 0) {
-        setAlert({
-          show: true,
-          type: "warning",
-          title: "No Questions",
-          message: "Please generate and fill at least one question"
-        });
-        return;
-      }
-
-      // Validate each question
-      for (let i = 0; i < questions.length; i++) {
-        if (!questions[i].text.trim()) {
+      if (questions[i].type === 'objective') {
+        // Check if all options are filled
+        if (questions[i].options.some(opt => !opt.trim())) {
           setAlert({
             show: true,
             type: "warning",
-            title: "Incomplete Question",
-            message: `Question ${i + 1} is empty`
+            title: "Incomplete Options",
+            message: `Please fill all options for Question ${i + 1}`
           });
           return;
         }
 
-        if (questions[i].type === 'objective') {
-          // Check if all options are filled
-          if (questions[i].options.some(opt => !opt.trim())) {
-            setAlert({
-              show: true,
-              type: "warning",
-              title: "Incomplete Options",
-              message: `Please fill all options for Question ${i + 1}`
-            });
-            return;
-          }
-
-          // Check if correct answer is selected
-          if (!correctAnswers[i]) {
-            setAlert({
-              show: true,
-              type: "warning",
-              title: "Missing Correct Answer",
-              message: `Please select correct answer for Question ${i + 1}`
-            });
-            return;
-          }
+        // Check if correct answer is selected
+        if (!correctAnswers[i]) {
+          setAlert({
+            show: true,
+            type: "warning",
+            title: "Missing Correct Answer",
+            message: `Please select correct answer for Question ${i + 1}`
+          });
+          return;
         }
       }
+    }
 
-      // Prepare questions with correct answers
-      const preparedQuestions = questions.map((question, index) => {
-        if (question.type === 'objective') {
-          return {
-            ...question,
-            correctAnswer: correctAnswers[index] || question.options[0] // Use selected answer or first option as default
-          };
-        } else {
-          return {
-            ...question,
-            correctAnswer: question.text // For subjective questions, use the question text as correct answer
-          };
-        }
-      });
-
-      const testData = {
-        roomNumber: roomNumber.trim(),
-        date,
-        time,
-        duration: Number(duration),
-        negativeMarking: parsedNegativeMarking,
-        questions: preparedQuestions
-      };
-
-      console.log("Sending test data:", testData);
-
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setAlert({
-          show: true,
-          type: "error",
-          title: "Authentication Error",
-          message: "Please login again"
-        });
-        navigate('/');
-        return;
+    // Prepare questions with correct answers
+    const preparedQuestions = questions.map((question, index) => {
+      if (question.type === 'objective') {
+        return {
+          ...question,
+          correctAnswer: correctAnswers[index] || question.options[0] // Use selected answer or first option as default
+        };
+      } else {
+        return {
+          ...question,
+          correctAnswer: question.text // For subjective questions, use the question text as correct answer
+        };
       }
+    });
 
-      const response = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(testData)
-      });
+    const testData = {
+      roomNumber: roomNumber.trim(),
+      date,
+      time,
+      duration: Number(duration),
+      negativeMarking: negativeMarkingValue,
+      marksPerCorrect: marksPerCorrectValue,
+      questions: preparedQuestions
+    };
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create test");
-      }
+    console.log("Sending test data:", testData);
 
-      setAlert({
-        show: true,
-        type: "success",
-        title: "Success",
-        message: "Test created successfully!"
-      });
-
-      // Reset form
-      setRoomNumber("");
-      setDate("");
-      setTime("");
-      setDuration("");
-      setNegativeMarking("");
-      setQuestions([]);
-      setCorrectAnswers({});
-    } catch (error) {
-      console.error("Error creating test:", error);
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
       setAlert({
         show: true,
         type: "error",
-        title: "Error",
-        message: error.message || "Failed to create test"
+        title: "Authentication Error",
+        message: "Please login again"
       });
+      navigate('/');
+      return;
     }
+
+    const response = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(testData)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to create test");
+    }
+
+    setAlert({
+      show: true,
+      type: "success",
+      title: "Success",
+      message: "Test created successfully!"
+    });
+
+    // Reset form
+    setRoomNumber("");
+    setDate("");
+    setTime("");
+    setDuration("");
+    setNegativeMarking("");
+    setMarksPerCorrect("1");
+    setQuestions([]);
+    setCorrectAnswers({});
   };
 
   const handleViewResponses = () => {
@@ -408,15 +415,30 @@ export default function CreateTest() {
                 <label className="block text-gray-300 mb-2">Negative Marking</label>
                 <input
                   type="number"
-                  step="0.25"
+                  step="0.01"
                   min="0"
                   value={negativeMarking}
                   onChange={(e) => setNegativeMarking(e.target.value)}
-                  placeholder="Enter negative marking (e.g., 0.25, 0.5, 1)"
+                  placeholder="Enter negative marking (e.g., 0.33)"
                   className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-sm text-gray-400 mt-1">
-                  Enter the marks to be deducted for each wrong answer (can be decimal)
+                  Marks deducted per wrong answer (can be decimal)
+                </p>
+              </div>
+              <div>
+                <label className="block text-gray-300 mb-2">Marks Per Correct Answer</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={marksPerCorrect}
+                  onChange={(e) => setMarksPerCorrect(e.target.value)}
+                  placeholder="Enter marks per correct answer (e.g., 1)"
+                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-sm text-gray-400 mt-1">
+                  Marks awarded for each correct answer
                 </p>
               </div>
             </div>
@@ -574,7 +596,7 @@ export default function CreateTest() {
           {/* Action Buttons */}
           <div className="flex gap-4 mt-8">
             <button 
-              onClick={createTest}
+              type="submit"
               className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition duration-200"
             >
               Create Test

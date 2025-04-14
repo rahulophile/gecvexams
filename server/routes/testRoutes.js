@@ -258,7 +258,7 @@ router.post("/submit-test", async (req, res) => {
   try {
     const { roomNumber, userDetails, answers } = req.body;
     
-    // Find the test first to get negative marking
+    // Find the test first to get negative marking and marks per correct
     const test = await TestModel.findOne({ roomNumber });
     if (!test) {
       return res.status(404).json({ 
@@ -282,8 +282,10 @@ router.post("/submit-test", async (req, res) => {
       }
     });
 
-    // Calculate final score with negative marking
-    const finalScore = correctAnswers - (test.negativeMarking * incorrectAnswers);
+    // Calculate final score with marks per correct and negative marking
+    const marksForCorrect = correctAnswers * test.marksPerCorrect;
+    const marksDeducted = test.negativeMarking * incorrectAnswers;
+    const finalScore = marksForCorrect - marksDeducted;
     const adjustedScore = Math.max(0, finalScore);
 
     // Update the test with submission and score
@@ -301,7 +303,8 @@ router.post("/submit-test", async (req, res) => {
               correct: correctAnswers,
               incorrect: incorrectAnswers,
               final: adjustedScore,
-              negativeMarking: test.negativeMarking
+              negativeMarking: test.negativeMarking,
+              marksPerCorrect: test.marksPerCorrect
             }
           }
         }
@@ -316,7 +319,10 @@ router.post("/submit-test", async (req, res) => {
         correct: correctAnswers,
         incorrect: incorrectAnswers,
         final: adjustedScore,
-        negativeMarking: test.negativeMarking
+        negativeMarking: test.negativeMarking,
+        marksPerCorrect: test.marksPerCorrect,
+        marksForCorrect: marksForCorrect,
+        marksDeducted: marksDeducted
       }
     });
 

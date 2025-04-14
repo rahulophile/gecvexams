@@ -6,6 +6,7 @@ const TestSchema = new mongoose.Schema({
   time: { type: String, required: true },
   duration: { type: Number, required: true },
   negativeMarking: { type: Number, required: true },
+  marksPerCorrect: { type: Number, required: true, default: 1 },
   questions: { 
     type: Array, 
     required: true,
@@ -29,7 +30,14 @@ const TestSchema = new mongoose.Schema({
       branch: String,
       regNo: String,
       answers: Object,
-      submittedAt: { type: Date, default: Date.now }
+      submittedAt: { type: Date, default: Date.now },
+      score: {
+        correct: Number,
+        incorrect: Number,
+        final: Number,
+        negativeMarking: Number,
+        marksPerCorrect: Number
+      }
     }
   ]
 });

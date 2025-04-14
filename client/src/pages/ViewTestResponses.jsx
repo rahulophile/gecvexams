@@ -87,11 +87,12 @@ const ViewTestResponses = () => {
       doc.text(`Date: ${testInfo.date}`, 14, 35);
       doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 45);
       doc.text(`Duration: ${testInfo.duration} minutes`, 14, 55);
-      doc.text(`Negative Marking: ${testInfo.negativeMarking} marks per wrong answer`, 14, 65);
+      doc.text(`Marks Per Correct Answer: ${testInfo.marksPerCorrect} marks`, 14, 65);
+      doc.text(`Negative Marking: ${testInfo.negativeMarking} marks per wrong answer`, 14, 75);
 
       // Add responses
       responses.forEach((response, index) => {
-        const startY = index === 0 ? 75 : doc.previousAutoTable.finalY + 20;
+        const startY = index === 0 ? 85 : doc.previousAutoTable.finalY + 20;
         
         // Student info
         doc.setFontSize(14);
@@ -104,11 +105,12 @@ const ViewTestResponses = () => {
         doc.text(`Score: ${response.score.final}`, 14, startY + 30);
         doc.text(`Correct Answers: ${response.score.correct}`, 14, startY + 40);
         doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, startY + 50);
-        doc.text(`Marks Deducted: ${(response.score.incorrect * response.score.negativeMarking).toFixed(2)}`, 14, startY + 60);
+        doc.text(`Marks Awarded: ${(response.score.correct * response.score.marksPerCorrect).toFixed(2)}`, 14, startY + 60);
+        doc.text(`Marks Deducted: ${(response.score.incorrect * response.score.negativeMarking).toFixed(2)}`, 14, startY + 70);
         
         // Objective answers
         if (response.objectiveAnswers && response.objectiveAnswers.length > 0) {
-          doc.text('Objective Answers:', 14, startY + 70);
+          doc.text('Objective Answers:', 14, startY + 80);
           const objectiveData = response.objectiveAnswers.map((answer, idx) => [
             `Q${idx + 1}`,
             answer.questionText,
@@ -117,7 +119,7 @@ const ViewTestResponses = () => {
           ]);
           
           doc.autoTable({
-            startY: startY + 75,
+            startY: startY + 85,
             head: [['Q.No', 'Question', 'Answer', 'Status']],
             body: objectiveData,
             theme: 'grid',
@@ -197,26 +199,14 @@ const ViewTestResponses = () => {
 
           {/* Test Info - Only show if we have testInfo */}
           {testInfo && (
-            <div className="bg-gray-800 rounded-lg p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4">Test Information</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-gray-400">Date</p>
-                  <p className="font-medium">{testInfo.date}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Time</p>
-                  <p className="font-medium">{formatTo12Hour(testInfo.time)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Duration</p>
-                  <p className="font-medium">{testInfo.duration} minutes</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Negative Marking</p>
-                  <p className="font-medium">{testInfo.negativeMarking} marks per wrong answer</p>
-                </div>
-              </div>
+            <div className="bg-white p-4 rounded-lg shadow mb-4">
+              <h2 className="text-xl font-semibold mb-2">Test Information</h2>
+              <p>Room Number: {testInfo.roomNumber}</p>
+              <p>Date: {testInfo.date}</p>
+              <p>Time: {formatTo12Hour(testInfo.time)}</p>
+              <p>Duration: {testInfo.duration} minutes</p>
+              <p>Marks Per Correct Answer: {testInfo.marksPerCorrect} marks</p>
+              <p>Negative Marking: {testInfo.negativeMarking} marks per wrong answer</p>
             </div>
           )}
 
@@ -236,59 +226,53 @@ const ViewTestResponses = () => {
           )}
 
           {/* Responses section */}
-          {responses.length > 0 ? (
-            <div className="space-y-6">
-              {responses.map((response, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-6">
-                  {/* Student Info */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold">{response.studentName}</h3>
-                      <p className="text-gray-400">Registration: {response.regNo}</p>
-                      <p className="text-gray-400">Branch: {response.branch}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-semibold">
-                        Score: {response.score.final}
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        Correct: {response.score.correct} | Wrong: {response.score.incorrect}
-                      </p>
-                      {response.score.incorrect > 0 && (
-                        <p className="text-sm text-red-400">
-                          Deducted: {(response.score.incorrect * response.score.negativeMarking).toFixed(2)} marks
-                        </p>
-                      )}
-                    </div>
-                  </div>
+          {responses.length > 0 && (
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Student Responses</h2>
+                <button
+                  onClick={downloadResponsesAsPDF}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Download PDF
+                </button>
+              </div>
 
-                  {/* Subjective Answers */}
-                  {response.subjectiveAnswers && response.subjectiveAnswers.length > 0 && (
-                    <div className="mt-4 border-t border-gray-700 pt-4">
-                      <h4 className="text-lg font-semibold mb-3">Subjective Answers</h4>
-                      <div className="space-y-3">
-                        {response.subjectiveAnswers.map((answer, idx) => (
-                          <div key={idx} className="bg-gray-700/50 rounded-lg p-4">
-                            <p className="text-gray-300 mb-2">
-                              <span className="font-medium">Q{answer.questionNumber}:</span> {answer.questionText}
-                            </p>
-                            <div className={`pl-4 border-l-2 ${answer.answer === "Did not attempt this question" ? 'border-red-500' : 'border-gray-600'} mt-2`}>
-                              <p className={`${answer.answer === "Did not attempt this question" ? 'text-red-400' : 'text-white'}`}>
-                                <span className="font-medium text-gray-400">Answer:</span>{' '}
-                                {answer.answer}
-                              </p>
-                            </div>
+              <div className="space-y-4">
+                {responses.map((response, index) => (
+                  <div key={index} className="border p-4 rounded">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="font-semibold">Student Name: {response.studentName}</p>
+                        <p>Registration: {response.regNo}</p>
+                        <p>Branch: {response.branch}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded">
+                        <p className="font-semibold">Score: {response.score.final}</p>
+                        <p>Correct Answers: {response.score.correct}</p>
+                        <p>Incorrect Answers: {response.score.incorrect}</p>
+                        <p>Marks Awarded: {(response.score.correct * response.score.marksPerCorrect).toFixed(2)}</p>
+                        <p>Marks Deducted: {(response.score.incorrect * response.score.negativeMarking).toFixed(2)}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <h3 className="font-semibold mb-2">Answers:</h3>
+                      <div className="space-y-2">
+                        {Object.entries(response.answers).map(([qIndex, answer]) => (
+                          <div key={qIndex} className="flex items-start gap-2">
+                            <span className="font-semibold">Q{qIndex}:</span>
+                            <span className={answer === testInfo.correctAnswers[qIndex] ? "text-green-600" : "text-red-600"}>
+                              {answer}
+                              {answer === testInfo.correctAnswers[qIndex] ? " ✓" : " ✗"}
+                            </span>
                           </div>
                         ))}
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : !error && !isLoading && testInfo && (
-            <div className="text-center py-12 bg-gray-800 rounded-lg">
-              <p className="text-gray-400">No responses to display</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
