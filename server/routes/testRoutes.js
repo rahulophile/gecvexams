@@ -544,9 +544,11 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
         }
       });
 
-      // Calculate final score with negative marking
-      const finalScore = correctAnswers - (test.negativeMarking * incorrectAnswers);
-      // Ensure score doesn't go below 0
+      // Calculate final score with marks per correct and negative marking
+      const marksPerCorrect = test.marksPerCorrect || 1;
+      const marksForCorrect = correctAnswers * marksPerCorrect;
+      const marksDeducted = test.negativeMarking * incorrectAnswers;
+      const finalScore = marksForCorrect - marksDeducted;
       const adjustedScore = Math.max(0, finalScore);
 
       return {
@@ -557,6 +559,9 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
         finalScore: adjustedScore,
         totalQuestions: test.questions.filter(q => q.type === 'objective').length,
         negativeMarking: test.negativeMarking,
+        marksPerCorrect: marksPerCorrect,
+        marksForCorrect: marksForCorrect,
+        marksDeducted: marksDeducted,
         ...(hasSubjective && {
           subjectiveAnswers
         })
@@ -573,7 +578,8 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
         roomNumber: test.roomNumber,
         date: test.date,
         time: test.time,
-        negativeMarking: test.negativeMarking
+        negativeMarking: test.negativeMarking,
+        marksPerCorrect: test.marksPerCorrect
       }
     });
 

@@ -102,15 +102,17 @@ const ViewTestResponses = () => {
         doc.text(`Branch: ${response.branch}`, 14, startY + 20);
         
         // Score information
-        doc.text(`Score: ${response.score.final}`, 14, startY + 30);
-        doc.text(`Correct Answers: ${response.score.correct}`, 14, startY + 40);
-        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, startY + 50);
-        doc.text(`Marks Awarded: ${(response.score.correct * response.score.marksPerCorrect).toFixed(2)}`, 14, startY + 60);
-        doc.text(`Marks Deducted: ${(response.score.incorrect * response.score.negativeMarking).toFixed(2)}`, 14, startY + 70);
+        doc.text(`Final Score: ${response.finalScore}`, 14, startY + 30);
+        doc.text(`Correct Answers: ${response.correctAnswers}`, 14, startY + 40);
+        doc.text(`Incorrect Answers: ${response.incorrectAnswers}`, 14, startY + 50);
+        doc.text(`Marks Per Correct: ${response.marksPerCorrect}`, 14, startY + 60);
+        doc.text(`Marks Awarded: ${response.marksForCorrect}`, 14, startY + 70);
+        doc.text(`Marks Deducted: ${response.marksDeducted}`, 14, startY + 80);
+        doc.text(`(Score calculated as: ${response.marksForCorrect} - ${response.marksDeducted} = ${response.finalScore})`, 14, startY + 90);
         
         // Objective answers
         if (response.objectiveAnswers && response.objectiveAnswers.length > 0) {
-          doc.text('Objective Answers:', 14, startY + 80);
+          doc.text('Objective Answers:', 14, startY + 100);
           const objectiveData = response.objectiveAnswers.map((answer, idx) => [
             `Q${idx + 1}`,
             answer.questionText,
@@ -119,7 +121,7 @@ const ViewTestResponses = () => {
           ]);
           
           doc.autoTable({
-            startY: startY + 85,
+            startY: startY + 105,
             head: [['Q.No', 'Question', 'Answer', 'Status']],
             body: objectiveData,
             theme: 'grid',
@@ -248,11 +250,15 @@ const ViewTestResponses = () => {
                         <p>Branch: {response.branch}</p>
                       </div>
                       <div className="bg-gray-50 p-3 rounded">
-                        <p className="font-semibold">Score: {response.score.final}</p>
-                        <p>Correct Answers: {response.score.correct}</p>
-                        <p>Incorrect Answers: {response.score.incorrect}</p>
-                        <p>Marks Awarded: {(response.score.correct * response.score.marksPerCorrect).toFixed(2)}</p>
-                        <p>Marks Deducted: {(response.score.incorrect * response.score.negativeMarking).toFixed(2)}</p>
+                        <p className="font-semibold">Final Score: {response.finalScore}</p>
+                        <p>Correct Answers: {response.correctAnswers}</p>
+                        <p>Incorrect Answers: {response.incorrectAnswers}</p>
+                        <p>Marks Per Correct: {response.marksPerCorrect}</p>
+                        <p>Marks Awarded: {response.marksForCorrect}</p>
+                        <p>Marks Deducted: {response.marksDeducted}</p>
+                        <p className="text-sm text-gray-600">
+                          (Score calculated as: {response.marksForCorrect} - {response.marksDeducted} = {response.finalScore})
+                        </p>
                       </div>
                     </div>
 
