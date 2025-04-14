@@ -766,7 +766,7 @@ export default function Test() {
                       )}
                       {testData.questions[currentQuestionIndex].type === 'subjective' && (
                         <div className="mb-6">
-                          <p className="text-lg font-medium mb-2">{testData.questions[currentQuestionIndex].text}</p>
+                          
                           {testData.questions[currentQuestionIndex].image && (
                             <div className="my-4 w-full flex justify-center">
                               <div className="relative w-full max-w-2xl mx-auto">
