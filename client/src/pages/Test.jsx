@@ -734,11 +734,12 @@ export default function Test() {
                         <div className="mb-6">
                           <p className="text-lg font-medium mb-2">{testData.questions[currentQuestionIndex].text}</p>
                           {testData.questions[currentQuestionIndex].image && (
-                            <div className="my-4">
+                            <div className="my-4 w-full flex justify-center">
                               <img 
                                 src={testData.questions[currentQuestionIndex].image} 
                                 alt="Question image" 
-                                className="max-w-full max-h-64 object-contain rounded-lg border border-gray-700"
+                                className="w-full max-w-md h-auto object-contain rounded-lg border border-gray-700"
+                                style={{ maxHeight: '300px' }}
                                 onError={(e) => {
                                   console.error('Error loading image:', e);
                                   e.target.style.display = 'none';
