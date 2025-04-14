@@ -20,10 +20,18 @@ const TestSchema = new mongoose.Schema({
   duration: { type: Number, required: true },
   negativeMarking: { type: Number, required: true },
   questions: [{
-    type: { type: String, enum: ['multiple-choice', 'subjective'], required: true },
-    question: { type: String, required: true },
-    options: { type: [String], required: function() { return this.type === 'multiple-choice'; } },
-    correctAnswer: { type: String, required: true }
+    type: { 
+      type: String, 
+      enum: ['objective', 'subjective'], 
+      required: true 
+    },
+    text: { type: String, required: true },
+    options: { 
+      type: [String], 
+      required: function() { return this.type === 'objective'; } 
+    },
+    correctAnswer: { type: String, required: true },
+    image: { type: String, required: false }
   }],
   correctAnswers: { type: Object, required: true },
   submissions: [
@@ -93,6 +101,39 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
         success: false,
         error: "At least one question is required"
       });
+    }
+
+    // Validate each question
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      
+      if (!question.type || !['objective', 'subjective'].includes(question.type)) {
+        return res.status(400).json({
+          success: false,
+          error: `Question ${i + 1}: Invalid question type. Must be either 'objective' or 'subjective'`
+        });
+      }
+
+      if (!question.text) {
+        return res.status(400).json({
+          success: false,
+          error: `Question ${i + 1}: Question text is required`
+        });
+      }
+
+      if (!question.correctAnswer) {
+        return res.status(400).json({
+          success: false,
+          error: `Question ${i + 1}: Correct answer is required`
+        });
+      }
+
+      if (question.type === 'objective' && (!Array.isArray(question.options) || question.options.length === 0)) {
+        return res.status(400).json({
+          success: false,
+          error: `Question ${i + 1}: Options are required for objective questions`
+        });
+      }
     }
 
     const existingTest = await TestModel.findOne({ roomNumber });
@@ -415,7 +456,7 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
           const answer = submission.answers ? submission.answers[index] : null;
           subjectiveAnswers.push({
             questionNumber: index + 1,
-            questionText: question.question,
+            questionText: question.text,
             answer: answer ? answer.trim() : "Did not attempt this question"
           });
         }
