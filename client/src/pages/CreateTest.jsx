@@ -344,273 +344,284 @@ export default function CreateTest() {
             <p className="text-gray-400">Set up your test details and questions</p>
           </div>
 
-          {/* Test Details Form */}
-          <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Test Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-gray-400 mb-2">Room Number <span className="text-red-500">*</span></label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Enter room number" 
-                    value={roomNumber} 
-                    onChange={(e) => {
-                      setRoomNumber(e.target.value);
-                      setRoomStatus(null);
-                    }}
-                    required
-                    className="border p-3 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={checkRoomAvailability}
-                    disabled={isCheckingRoom}
-                    className={`px-4 py-2 rounded-lg transition duration-200 ${
-                      isCheckingRoom 
-                        ? 'bg-gray-600' 
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
-                  >
-                    {isCheckingRoom ? 'Checking...' : 'Check'}
-                  </button>
+          <form onSubmit={handleSubmit}>
+            {/* Test Details Form */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-4">Test Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-gray-400 mb-2">Room Number <span className="text-red-500">*</span></label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Enter room number" 
+                      value={roomNumber} 
+                      onChange={(e) => {
+                        setRoomNumber(e.target.value);
+                        setRoomStatus(null);
+                      }}
+                      required
+                      className="border p-3 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={checkRoomAvailability}
+                      disabled={isCheckingRoom}
+                      className={`px-4 py-2 rounded-lg transition duration-200 ${
+                        isCheckingRoom 
+                          ? 'bg-gray-600' 
+                          : 'bg-blue-600 hover:bg-blue-700'
+                      }`}
+                    >
+                      {isCheckingRoom ? 'Checking...' : 'Check'}
+                    </button>
+                  </div>
+                  {roomStatus && (
+                    <p className={`mt-2 text-sm ${
+                      roomStatus.isAvailable ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {roomStatus.message}
+                    </p>
+                  )}
                 </div>
-                {roomStatus && (
-                  <p className={`mt-2 text-sm ${
-                    roomStatus.isAvailable ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {roomStatus.message}
+                <div>
+                  <label className="block text-gray-400 mb-2">Date <span className="text-red-500">*</span></label>
+                  <input 
+                    type="date" 
+                    value={date} 
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                    className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 mb-2">Time</label>
+                  <input 
+                    type="time" 
+                    value={time} 
+                    onChange={(e) => setTime(e.target.value)}
+                    className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 mb-2">Duration (minutes)</label>
+                  <input 
+                    type="number" 
+                    placeholder="Enter duration" 
+                    value={duration} 
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-gray-400 mb-2">Marks Per Correct Answer <span className="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={marksPerCorrect}
+                    onChange={(e) => setMarksPerCorrect(e.target.value)}
+                    placeholder="Enter marks per correct answer (e.g., 1)"
+                    required
+                    className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Marks awarded for each correct answer (must be greater than 0)
                   </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-gray-400 mb-2">Date <span className="text-red-500">*</span></label>
-                <input 
-                  type="date" 
-                  value={date} 
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-400 mb-2">Time</label>
-                <input 
-                  type="time" 
-                  value={time} 
-                  onChange={(e) => setTime(e.target.value)}
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-400 mb-2">Duration (minutes)</label>
-                <input 
-                  type="number" 
-                  placeholder="Enter duration" 
-                  value={duration} 
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                </div>
+                <div>
+                  <label className="block text-gray-400 mb-2">Negative Marking <span className="text-red-500">*</span></label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={negativeMarking}
+                    onChange={(e) => setNegativeMarking(e.target.value)}
+                    placeholder="Enter negative marking (e.g., 0.33)"
+                    required
+                    className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Marks deducted per wrong answer (can be 0 for no negative marking)
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-gray-400 mb-2">Marks Per Correct Answer <span className="text-red-500">*</span></label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={marksPerCorrect}
-                  onChange={(e) => setMarksPerCorrect(e.target.value)}
-                  placeholder="Enter marks per correct answer (e.g., 1)"
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  Marks awarded for each correct answer (must be greater than 0)
-                </p>
-              </div>
-              <div>
-                <label className="block text-gray-400 mb-2">Negative Marking <span className="text-red-500">*</span></label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={negativeMarking}
-                  onChange={(e) => setNegativeMarking(e.target.value)}
-                  placeholder="Enter negative marking (e.g., 0.33)"
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  Marks deducted per wrong answer (can be 0 for no negative marking)
-                </p>
-              </div>
-            </div>
-          </form>
+            {/* Question Generation Section */}
+            <div className="bg-gray-800 rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-4">Question Setup</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-400 mb-2">Question Type</label>
+                  <select 
+                    value={questionType} 
+                    onChange={(e) => setQuestionType(e.target.value)}
+                    className="border p-3 w-full rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="objective">Objective Only</option>
+                    <option value="subjective">Subjective Only</option>
+                    <option value="mixed">Mixed (Both Types)</option>
+                  </select>
+                </div>
 
-          {/* Question Generation Section */}
-          <div className="bg-gray-800 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Question Setup</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-400 mb-2">Question Type</label>
-                <select 
-                  value={questionType} 
-                  onChange={(e) => setQuestionType(e.target.value)}
-                  className="border p-3 w-full rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(questionType === "objective" || questionType === "mixed") && (
+                    <div>
+                      <label className="block text-gray-400 mb-2">Number of Objective Questions</label>
+                      <input 
+                        type="number" 
+                        placeholder="Enter number" 
+                        value={numObjective} 
+                        onChange={(e) => setNumObjective(e.target.value)}
+                        className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
+                  {(questionType === "subjective" || questionType === "mixed") && (
+                    <div>
+                      <label className="block text-gray-400 mb-2">Number of Subjective Questions</label>
+                      <input 
+                        type="number" 
+                        placeholder="Enter number" 
+                        value={numSubjective} 
+                        onChange={(e) => setNumSubjective(e.target.value)}
+                        className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <button 
+                  type="button"
+                  onClick={generateQuestions}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200 mt-4"
                 >
-                  <option value="objective">Objective Only</option>
-                  <option value="subjective">Subjective Only</option>
-                  <option value="mixed">Mixed (Both Types)</option>
-                </select>
+                  Generate Questions
+                </button>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(questionType === "objective" || questionType === "mixed") && (
-                  <div>
-                    <label className="block text-gray-400 mb-2">Number of Objective Questions</label>
-                    <input 
-                      type="number" 
-                      placeholder="Enter number" 
-                      value={numObjective} 
-                      onChange={(e) => setNumObjective(e.target.value)}
-                      className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            {/* Questions List */}
+            {questions.length > 0 && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold">Questions</h2>
+                {questions.map((q, index) => (
+                  <div key={index} className="bg-gray-800 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-base md:text-lg font-semibold">Question {index + 1}</h3>
+                      <span className="px-2 py-1 bg-gray-700 rounded-full text-xs md:text-sm">
+                        {q.type === 'objective' ? 'Objective' : 'Subjective'}
+                      </span>
+                    </div>
+                    
+                    <textarea 
+                      placeholder="Enter your question here" 
+                      value={q.text} 
+                      onChange={(e) => updateQuestion(index, e.target.value)}
+                      required
+                      className="border p-2 w-full mb-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm md:text-base"
+                      style={{ minHeight: '80px' }}
                     />
+
+                    {q.type === "objective" && (
+                      <div className="space-y-2">
+                        {q.options.map((opt, oIndex) => (
+                          <div key={oIndex} className="flex items-center">
+                            <span className="text-gray-400 mr-2 text-sm">{oIndex + 1}.</span>
+                            <input 
+                              type="text" 
+                              placeholder={`Option ${oIndex + 1}`} 
+                              value={opt}
+                              onChange={(e) => updateOption(index, oIndex, e.target.value)}
+                              required
+                              className="border p-2 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                            />
+                          </div>
+                        ))}
+                        <select 
+                          onChange={(e) => setCorrectAnswer(index, e.target.value)}
+                          required
+                          className="border p-2 w-full rounded-lg bg-gray-700 text-white mt-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+                        >
+                          <option value="">Select Correct Answer</option>
+                          {q.options.map((opt, oIndex) => (
+                            <option key={oIndex} value={opt}>Option {oIndex + 1}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {q.type === "subjective" && (
+                      <div className="mt-2">
+                        <div className="flex items-center space-x-2">
+                          <label className="block">
+                            <span className="text-gray-400 text-sm">Upload Image (Optional)</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                if (e.target.files[0]) {
+                                  handleImageUpload(index, e.target.files[0]);
+                                }
+                              }}
+                              className="mt-1 block w-full text-xs md:text-sm text-gray-400
+                                file:mr-2 file:py-1 file:px-2
+                                file:rounded-full file:border-0
+                                file:text-xs file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                            />
+                          </label>
+                        </div>
+                        
+                        {q.image && (
+                          <div className="mt-2">
+                            <img 
+                              src={q.image} 
+                              alt="Question image" 
+                              className="max-w-md max-h-32 md:max-h-40 object-contain rounded-lg border border-gray-700"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updatedQuestions = [...questions];
+                                updatedQuestions[index].image = null;
+                                setQuestions(updatedQuestions);
+                              }}
+                              className="mt-1 text-red-500 hover:text-red-700 text-xs md:text-sm"
+                            >
+                              Remove Image
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-                {(questionType === "subjective" || questionType === "mixed") && (
-                  <div>
-                    <label className="block text-gray-400 mb-2">Number of Subjective Questions</label>
-                    <input 
-                      type="number" 
-                      placeholder="Enter number" 
-                      value={numSubjective} 
-                      onChange={(e) => setNumSubjective(e.target.value)}
-                      className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                )}
+                ))}
               </div>
+            )}
 
+            {/* Action Buttons */}
+            <div className="flex gap-4 mt-8">
               <button 
-                onClick={generateQuestions}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition duration-200 mt-4"
+                type="submit"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition duration-200"
               >
-                Generate Questions
+                Create Test
+              </button>
+              <button 
+                type="button"
+                onClick={() => navigate('/admin-panel')}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition duration-200"
+              >
+                Cancel
               </button>
             </div>
-          </div>
-
-          {/* Questions List */}
-          {questions.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Questions</h2>
-              {questions.map((q, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-base md:text-lg font-semibold">Question {index + 1}</h3>
-                    <span className="px-2 py-1 bg-gray-700 rounded-full text-xs md:text-sm">
-                      {q.type === 'objective' ? 'Objective' : 'Subjective'}
-                    </span>
-                  </div>
-                  
-                  <textarea 
-                    placeholder="Enter your question here" 
-                    value={q.text} 
-                    onChange={(e) => updateQuestion(index, e.target.value)}
-                    className="border p-2 w-full mb-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm md:text-base"
-                    style={{ minHeight: '80px' }}
-                  />
-
-                  {q.type === "objective" && (
-                    <div className="space-y-2">
-                      {q.options.map((opt, oIndex) => (
-                        <div key={oIndex} className="flex items-center">
-                          <span className="text-gray-400 mr-2 text-sm">{oIndex + 1}.</span>
-                          <input 
-                            type="text" 
-                            placeholder={`Option ${oIndex + 1}`} 
-                            value={opt}
-                            onChange={(e) => updateOption(index, oIndex, e.target.value)}
-                            className="border p-2 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
-                          />
-                        </div>
-                      ))}
-                      <select 
-                        onChange={(e) => setCorrectAnswer(index, e.target.value)}
-                        className="border p-2 w-full rounded-lg bg-gray-700 text-white mt-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
-                      >
-                        <option value="">Select Correct Answer</option>
-                        {q.options.map((opt, oIndex) => (
-                          <option key={oIndex} value={opt}>Option {oIndex + 1}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {q.type === "subjective" && (
-                    <div className="mt-2">
-                      <div className="flex items-center space-x-2">
-                        <label className="block">
-                          <span className="text-gray-400 text-sm">Upload Image (Optional)</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files[0]) {
-                                handleImageUpload(index, e.target.files[0]);
-                              }
-                            }}
-                            className="mt-1 block w-full text-xs md:text-sm text-gray-400
-                              file:mr-2 file:py-1 file:px-2
-                              file:rounded-full file:border-0
-                              file:text-xs file:font-semibold
-                              file:bg-blue-50 file:text-blue-700
-                              hover:file:bg-blue-100"
-                          />
-                        </label>
-                      </div>
-                      
-                      {q.image && (
-                        <div className="mt-2">
-                          <img 
-                            src={q.image} 
-                            alt="Question image" 
-                            className="max-w-md max-h-32 md:max-h-40 object-contain rounded-lg border border-gray-700"
-                          />
-                          <button
-                            onClick={() => {
-                              const updatedQuestions = [...questions];
-                              updatedQuestions[index].image = null;
-                              setQuestions(updatedQuestions);
-                            }}
-                            className="mt-1 text-red-500 hover:text-red-700 text-xs md:text-sm"
-                          >
-                            Remove Image
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 mt-8">
-            <button 
-              type="submit"
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition duration-200"
-            >
-              Create Test
-            </button>
-            <button 
-              onClick={() => navigate('/admin-panel')}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition duration-200"
-            >
-              Cancel
-            </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
