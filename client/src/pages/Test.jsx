@@ -784,11 +784,17 @@ export default function Test() {
                                 src={testData.questions[currentQuestionIndex].image} 
                                 alt="Question image" 
                                 className="w-full max-w-md h-auto object-contain rounded-lg border border-gray-700"
-                                style={{ maxHeight: '300px' }}
+                                style={{ 
+                                  maxHeight: '300px',
+                                  width: '100%',
+                                  height: 'auto',
+                                  display: 'block'
+                                }}
                                 onError={(e) => {
                                   console.error('Error loading image:', e);
                                   e.target.style.display = 'none';
                                 }}
+                                loading="lazy"
                               />
                             </div>
                           )}
