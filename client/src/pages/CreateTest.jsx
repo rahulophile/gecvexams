@@ -71,8 +71,14 @@ export default function CreateTest() {
       const data = await response.json();
       if (data.success) {
         const updatedQuestions = [...questions];
-        updatedQuestions[index].image = data.imageUrl;
+        let imageUrl = data.imageUrl;
+        if (!imageUrl.startsWith('http')) {
+          imageUrl = `https://exam-server-gecv.onrender.com${imageUrl}`;
+        }
+        updatedQuestions[index].image = imageUrl;
         setQuestions(updatedQuestions);
+        
+        console.log('Uploaded image URL:', imageUrl);
       } else {
         throw new Error(data.message || 'Failed to upload image');
       }

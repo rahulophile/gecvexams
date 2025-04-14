@@ -128,18 +128,57 @@ process.on("SIGINT", async () => {
 
 app.post("/api/create-test", async (req, res) => {
     try {
-      const { roomNumber, date, time, duration, negativeMarking, questions, correctAnswers } = req.body;
+      const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
       
-      // Save the test in your database (MongoDB or another DB)
-      const newTest = new TestModel({ roomNumber, date, time, duration, negativeMarking, questions, correctAnswers });
+      // Validate questions array
+      if (!Array.isArray(questions)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Questions must be an array" 
+        });
+      }
+
+      // Process each question
+      const processedQuestions = questions.map(question => {
+        if (question.type === 'subjective' && question.image) {
+          // Ensure the image URL is properly formatted
+          if (!question.image.startsWith('http')) {
+            question.image = `${req.protocol}://${req.get('host')}${question.image}`;
+          }
+        }
+        return question;
+      });
+
+      // Create the test with processed questions
+      const newTest = new TestModel({ 
+        roomNumber, 
+        date, 
+        time, 
+        duration, 
+        negativeMarking, 
+        questions: processedQuestions,
+        correctAnswers: questions.reduce((acc, q, index) => {
+          acc[index] = q.correctAnswer;
+          return acc;
+        }, {})
+      });
+
       await newTest.save();
       
-      res.status(201).json({ success: true, message: "Test created successfully!" });
+      res.status(201).json({ 
+        success: true, 
+        message: "Test created successfully!",
+        test: newTest
+      });
     } catch (error) {
       console.error("Error creating test:", error);
-      res.status(500).json({ success: false, message: "Server error" });
+      res.status(500).json({ 
+        success: false, 
+        message: "Server error",
+        error: error.message 
+      });
     }
-  });
+});
 
 // Start Server
 const PORT = process.env.PORT || 8080;
