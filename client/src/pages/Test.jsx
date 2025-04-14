@@ -159,7 +159,6 @@ export default function Test() {
               negativeValue = parseFloat(negativeMark) || 0;
             }
             
-            // Subtract negative marking for each incorrect answer
             totalScore -= negativeValue;
           }
         }
@@ -171,18 +170,13 @@ export default function Test() {
       // Round the score to 2 decimal places to avoid floating point precision issues
       totalScore = Math.round(totalScore * 100) / 100;
 
-      console.log('Score Calculation:', {
-        correctAnswers,
-        incorrectAnswers,
-        totalScore,
-        negativeMarking: testData.questions[0]?.negativeMarking
-      });
-
-      const response = await fetch('http://localhost:5000/api/submit-test', {
+      const response = await fetch('https://exam-server-gecv.onrender.com/api/submit-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           testId: testData._id,
           userId: userDetails._id,

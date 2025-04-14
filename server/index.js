@@ -45,16 +45,14 @@ const upload = multer({
 
 // Middleware
 app.use(express.json());
-app.use(cors());
 
 // Configure CORS
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://examgecv.onrender.com"],
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://examgecv.onrender.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Serve static files from uploads directory with proper caching
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
