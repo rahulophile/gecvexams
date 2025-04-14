@@ -37,7 +37,7 @@ const ViewTestResponses = () => {
     try {
       const token = localStorage.getItem('adminToken');
       
-      const res = await fetch(`http://localhost:8080/api/get-test-responses/${roomNumber}`, {
+      const res = await fetch(`https://exam-server-gecv.onrender.com/api/get-test-responses/${roomNumber}`, {
         headers: { 
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"

@@ -31,7 +31,7 @@ export default function Home() {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/verify-room/${roomNumber}`);
+      const res = await fetch(`https://exam-server-gecv.onrender.com/api/verify-room/${roomNumber}`);
       const data = await res.json();
       
       if (data.success) {
@@ -106,7 +106,7 @@ export default function Home() {
 
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/admin-login", {
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: adminId, password: adminPass }),

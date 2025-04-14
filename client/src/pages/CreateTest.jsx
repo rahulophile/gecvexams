@@ -60,7 +60,7 @@ export default function CreateTest() {
       formData.append('image', file);
       
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:8080/api/upload-image', {
+      const response = await fetch('https://exam-server-gecv.onrender.com/api/upload-image', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -101,7 +101,7 @@ export default function CreateTest() {
     setIsCheckingRoom(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(`http://localhost:8080/api/check-room/${roomNumber}`, {
+      const res = await fetch(`https://exam-server-gecv.onrender.com/api/check-room/${roomNumber}`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -250,7 +250,7 @@ export default function CreateTest() {
         return;
       }
 
-      const res = await fetch("http://localhost:8080/api/create-test", {
+      const res = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

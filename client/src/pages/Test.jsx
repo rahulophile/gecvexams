@@ -54,7 +54,7 @@ export default function Test() {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('adminToken'); // Get the token from local storage
-        const res = await fetch(`http://localhost:8080/api/get-test/${roomNumber}`, {
+        const res = await fetch(`https://exam-server-gecv.onrender.com/api/get-test/${roomNumber}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -126,7 +126,7 @@ export default function Test() {
   const handleSubmitConfirmed = async (confirmed) => {
     if (confirmed) {
       try {
-        const response = await fetch("http://localhost:8080/api/submit-test", {
+        const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
           method: "POST",
           headers: { 
             "Content-Type": "application/json"
@@ -201,7 +201,7 @@ export default function Test() {
 
     try {
       // Check if registration number already exists
-      const response = await fetch("http://localhost:8080/api/check-registration", {
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/check-registration", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -239,7 +239,7 @@ export default function Test() {
   const handleExitConfirm = async (confirmed) => {
     if (confirmed) {
       try {
-        const response = await fetch("http://localhost:8080/api/submit-test", {
+        const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
           method: "POST",
           headers: { 
             "Content-Type": "application/json"
@@ -517,7 +517,7 @@ export default function Test() {
     toast.error('Test rules violated! Your responses are being submitted automatically.');
     
     try {
-      const response = await fetch("http://localhost:8080/api/submit-test", {
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json"

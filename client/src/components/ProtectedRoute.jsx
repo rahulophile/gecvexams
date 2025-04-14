@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
           return;
         }
 
-        const response = await fetch('http://localhost:8080/api/verify-admin', {
+        const response = await fetch('https://exam-server-gecv.onrender.com/api/verify-admin', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`
