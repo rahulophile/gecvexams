@@ -473,10 +473,10 @@ export default function CreateTest() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold">Questions</h2>
               {questions.map((q, index) => (
-                <div key={index} className="bg-gray-800 rounded-lg p-6 mb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Question {index + 1}</h3>
-                    <span className="px-3 py-1 bg-gray-700 rounded-full text-sm">
+                <div key={index} className="bg-gray-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base md:text-lg font-semibold">Question {index + 1}</h3>
+                    <span className="px-2 py-1 bg-gray-700 rounded-full text-xs md:text-sm">
                       {q.type === 'objective' ? 'Objective' : 'Subjective'}
                     </span>
                   </div>
@@ -485,27 +485,27 @@ export default function CreateTest() {
                     placeholder="Enter your question here" 
                     value={q.text} 
                     onChange={(e) => updateQuestion(index, e.target.value)}
-                    className="border p-3 w-full mb-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    style={{ minHeight: '100px' }}
+                    className="border p-2 w-full mb-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm md:text-base"
+                    style={{ minHeight: '80px' }}
                   />
 
                   {q.type === "objective" && (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {q.options.map((opt, oIndex) => (
                         <div key={oIndex} className="flex items-center">
-                          <span className="text-gray-400 mr-2">{oIndex + 1}.</span>
+                          <span className="text-gray-400 mr-2 text-sm">{oIndex + 1}.</span>
                           <input 
                             type="text" 
                             placeholder={`Option ${oIndex + 1}`} 
                             value={opt}
                             onChange={(e) => updateOption(index, oIndex, e.target.value)}
-                            className="border p-3 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="border p-2 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                           />
                         </div>
                       ))}
                       <select 
                         onChange={(e) => setCorrectAnswer(index, e.target.value)}
-                        className="border p-3 w-full rounded-lg bg-gray-700 text-white mt-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="border p-2 w-full rounded-lg bg-gray-700 text-white mt-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                       >
                         <option value="">Select Correct Answer</option>
                         {q.options.map((opt, oIndex) => (
@@ -516,10 +516,10 @@ export default function CreateTest() {
                   )}
 
                   {q.type === "subjective" && (
-                    <div className="mt-4">
-                      <div className="flex items-center space-x-4">
+                    <div className="mt-2">
+                      <div className="flex items-center space-x-2">
                         <label className="block">
-                          <span className="text-gray-400">Upload Image (Optional)</span>
+                          <span className="text-gray-400 text-sm">Upload Image (Optional)</span>
                           <input
                             type="file"
                             accept="image/*"
@@ -528,10 +528,10 @@ export default function CreateTest() {
                                 handleImageUpload(index, e.target.files[0]);
                               }
                             }}
-                            className="mt-2 block w-full text-sm text-gray-400
-                              file:mr-4 file:py-2 file:px-4
+                            className="mt-1 block w-full text-xs md:text-sm text-gray-400
+                              file:mr-2 file:py-1 file:px-2
                               file:rounded-full file:border-0
-                              file:text-sm file:font-semibold
+                              file:text-xs file:font-semibold
                               file:bg-blue-50 file:text-blue-700
                               hover:file:bg-blue-100"
                           />
@@ -539,11 +539,11 @@ export default function CreateTest() {
                       </div>
                       
                       {q.image && (
-                        <div className="mt-4">
+                        <div className="mt-2">
                           <img 
                             src={q.image} 
                             alt="Question image" 
-                            className="max-w-md max-h-48 object-contain rounded-lg border border-gray-700"
+                            className="max-w-md max-h-32 md:max-h-40 object-contain rounded-lg border border-gray-700"
                           />
                           <button
                             onClick={() => {
@@ -551,7 +551,7 @@ export default function CreateTest() {
                               updatedQuestions[index].image = null;
                               setQuestions(updatedQuestions);
                             }}
-                            className="mt-2 text-red-500 hover:text-red-700 text-sm"
+                            className="mt-1 text-red-500 hover:text-red-700 text-xs md:text-sm"
                           >
                             Remove Image
                           </button>
