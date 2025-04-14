@@ -288,33 +288,13 @@ router.post("/submit-test", async (req, res) => {
     const finalScore = marksForCorrect - marksDeducted;
     const adjustedScore = Math.max(0, finalScore);
 
-    // Update the test with submission and score
-    const updatedTest = await TestModel.findOneAndUpdate(
-      { roomNumber: roomNumber },
-      {
-        $push: {
-          submissions: {
-            studentName: userDetails.name,
-            branch: userDetails.branch,
-            regNo: userDetails.regNo,
-            answers: answers,
-            submittedAt: new Date(),
-            score: {
-              correct: correctAnswers,
-              incorrect: incorrectAnswers,
-              final: adjustedScore,
-              negativeMarking: test.negativeMarking,
-              marksPerCorrect: test.marksPerCorrect
-            }
-          }
-        }
-      },
-      { new: true }
-    );
-
-    res.json({ 
-      success: true, 
-      message: "Test submitted successfully",
+    // Create submission object
+    const submission = {
+      studentName: userDetails.name,
+      branch: userDetails.branch,
+      regNo: userDetails.regNo,
+      answers: answers,
+      submittedAt: new Date(),
       score: {
         correct: correctAnswers,
         incorrect: incorrectAnswers,
@@ -324,13 +304,33 @@ router.post("/submit-test", async (req, res) => {
         marksForCorrect: marksForCorrect,
         marksDeducted: marksDeducted
       }
+    };
+
+    // Update the test with submission
+    const updatedTest = await TestModel.findOneAndUpdate(
+      { roomNumber: roomNumber },
+      { $push: { submissions: submission } },
+      { new: true }
+    );
+
+    if (!updatedTest) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Test not found" 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Test submitted successfully",
+      score: submission.score
     });
 
   } catch (error) {
     console.error("Error submitting test:", error);
     res.status(500).json({ 
       success: false, 
-      message: "Internal server error" 
+      message: error.message || "Internal server error" 
     });
   }
 });
