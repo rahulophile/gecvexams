@@ -134,10 +134,23 @@ export default function Test() {
   const handleSubmitConfirmed = async (confirmed) => {
     if (confirmed) {
       try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          setAlert({
+            show: true,
+            type: 'error',
+            title: 'Authentication Error',
+            message: 'Please login again'
+          });
+          navigate('/');
+          return;
+        }
+
         const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
           method: "POST",
           headers: { 
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify({
             roomNumber,
@@ -150,7 +163,8 @@ export default function Test() {
         });
 
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Network response was not ok');
         }
 
         const data = await response.json();
@@ -175,6 +189,12 @@ export default function Test() {
         }
       } catch (error) {
         console.error("Error submitting test:", error);
+        setAlert({
+          show: true,
+          type: 'error',
+          title: 'Submission Error',
+          message: error.message || 'Failed to submit test. Please try again.'
+        });
         setSubmissionStatus('error');
         setShowSubmissionPopup(true);
       }
