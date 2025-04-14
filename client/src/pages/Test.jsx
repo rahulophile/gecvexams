@@ -388,25 +388,16 @@ export default function Test() {
   // Update keyboard event handler to include more restrictions
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Allow typing in textarea when focused
+      if (isTextareaFocused) {
+        return;
+      }
+
       // Handle ESC key
       if (e.key === 'Escape') {
-        // Check if in fullscreen mode
-        const isInFullscreen = document.fullscreenElement || 
-                             document.webkitFullscreenElement || 
-                             document.mozFullScreenElement || 
-                             document.msFullscreenElement;
-
-        if (isInFullscreen) {
-          // Completely prevent default behavior and show confirmation
-          e.preventDefault();
-          e.stopPropagation();
-          setShowSubmitConfirm(true);
-          return false;
-        }
-        
-        // If not in fullscreen, just prevent default
         e.preventDefault();
         e.stopPropagation();
+        setShowSubmitConfirm(true);
         return false;
       }
 
@@ -425,26 +416,6 @@ export default function Test() {
 
       // Block all other keyboard shortcuts and keys
       e.preventDefault();
-
-      // Allow typing only in subjective question textarea when focused
-      if (isTextareaFocused && testData.questions[currentQuestionIndex].type === "subjective") {
-        // Allow only basic typing keys
-        const allowedKeys = [
-          'Backspace', 'Delete', 'Enter', 'Space', 'Tab',
-          'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-          'Home', 'End', 'PageUp', 'PageDown',
-          'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-          'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-          'Shift', 'CapsLock', 'Control', 'Alt', 'Meta',
-          ',', '.', ';', ':', '"', "'", '?', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-          '-', '_', '+', '=', '{', '}', '[', ']', '|', '\\', '<', '>', '/', '`', '~'
-        ];
-
-        if (!allowedKeys.includes(e.key) && !e.key.match(/^[a-zA-Z0-9]$/)) {
-          return;
-        }
-      }
 
       // Allow only arrow keys for navigation between questions
       if (e.key === 'ArrowLeft' && currentQuestionIndex > 0) {
@@ -818,6 +789,8 @@ export default function Test() {
                           <textarea
                             value={subjectiveAnswers[currentQuestionIndex] || ''}
                             onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
+                            onFocus={() => setIsTextareaFocused(true)}
+                            onBlur={() => setIsTextareaFocused(false)}
                             placeholder="Enter your answer here"
                             className="w-full p-3 border rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             style={{ minHeight: '100px', maxHeight: '200px' }}
