@@ -152,7 +152,7 @@ export default function Home() {
         {/* Logo or title section */}
         <div className="text-center space-y-4 animate-fadeIn">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Coding Club Live Test
+            GEC Vaishali Live Test
           </h1>
           <p className="text-xl text-gray-300">
             Join our coding challenges and test your skills!
