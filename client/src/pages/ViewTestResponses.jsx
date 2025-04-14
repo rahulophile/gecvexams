@@ -127,13 +127,13 @@ const ViewTestResponses = () => {
         doc.text(`Branch: ${response.branch}`, 14, startY + 20);
         
         // Score information
-        doc.text(`Final Score: ${response.finalScore}`, 14, startY + 30);
-        doc.text(`Correct Answers: ${response.correctAnswers}`, 14, startY + 40);
-        doc.text(`Incorrect Answers: ${response.incorrectAnswers}`, 14, startY + 50);
-        doc.text(`Marks Per Correct: ${response.marksPerCorrect}`, 14, startY + 60);
-        doc.text(`Marks Awarded: ${response.marksForCorrect}`, 14, startY + 70);
-        doc.text(`Marks Deducted: ${response.marksDeducted}`, 14, startY + 80);
-        doc.text(`(Score calculated as: ${response.marksForCorrect} - ${response.marksDeducted} = ${response.finalScore})`, 14, startY + 90);
+        doc.text(`Final Score: ${response.score.final}`, 14, startY + 30);
+        doc.text(`Correct Answers: ${response.score.correct}`, 14, startY + 40);
+        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, startY + 50);
+        doc.text(`Marks Per Correct: ${response.score.marksPerCorrect}`, 14, startY + 60);
+        doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, startY + 70);
+        doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, startY + 80);
+        doc.text(`(Score calculated as: ${response.score.marksForCorrect} - ${response.score.marksDeducted} = ${response.score.final})`, 14, startY + 90);
 
         // Add page break if not the last response
         if (index < responses.length - 1) {
@@ -265,16 +265,75 @@ const ViewTestResponses = () => {
                     <div className="bg-gray-700 p-4 rounded-lg">
                       <h3 className="text-lg font-semibold mb-4">Score Information</h3>
                       <div className="space-y-2">
-                        <p><span className="text-gray-400">Final Score:</span> {response.finalScore}</p>
-                        <p><span className="text-gray-400">Correct Answers:</span> {response.correctAnswers}</p>
-                        <p><span className="text-gray-400">Incorrect Answers:</span> {response.incorrectAnswers}</p>
-                        <p><span className="text-gray-400">Marks Per Correct:</span> {response.marksPerCorrect}</p>
-                        <p><span className="text-gray-400">Marks Awarded:</span> {response.marksForCorrect}</p>
-                        <p><span className="text-gray-400">Marks Deducted:</span> {response.marksDeducted}</p>
+                        <p><span className="text-gray-400">Final Score:</span> {response.score.final}</p>
+                        <p><span className="text-gray-400">Correct Answers:</span> {response.score.correct}</p>
+                        <p><span className="text-gray-400">Incorrect Answers:</span> {response.score.incorrect}</p>
+                        <p><span className="text-gray-400">Marks Per Correct:</span> {response.score.marksPerCorrect}</p>
+                        <p><span className="text-gray-400">Marks Awarded:</span> {response.score.marksForCorrect}</p>
+                        <p><span className="text-gray-400">Marks Deducted:</span> {response.score.marksDeducted}</p>
                         <p className="text-sm text-gray-400 mt-2">
-                          Score calculation: {response.marksForCorrect} - {response.marksDeducted} = {response.finalScore}
+                          Score calculation: {response.score.marksForCorrect} - {response.score.marksDeducted} = {response.score.final}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Answers Section */}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-4">Student Answers</h3>
+                    <div className="space-y-4">
+                      {/* Objective Questions */}
+                      {testInfo.questions.filter(q => q.type === 'objective').map((question, index) => (
+                        <div key={index} className="bg-gray-700 p-4 rounded-lg">
+                          <p className="font-medium mb-2">Question {index + 1}: {question.text}</p>
+                          <div className="space-y-2">
+                            {question.options.map((option, optIndex) => (
+                              <div 
+                                key={optIndex}
+                                className={`p-2 rounded ${
+                                  response.answers[index] === option
+                                    ? response.answers[index] === testInfo.correctAnswers[index]
+                                      ? 'bg-green-900/50 border border-green-500'
+                                      : 'bg-red-900/50 border border-red-500'
+                                    : 'bg-gray-800'
+                                }`}
+                              >
+                                {option}
+                                {response.answers[index] === option && (
+                                  <span className="ml-2">
+                                    {response.answers[index] === testInfo.correctAnswers[index] ? '✓' : '✗'}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Subjective Questions */}
+                      {testInfo.questions.filter(q => q.type === 'subjective').map((question, index) => {
+                        const objIndex = testInfo.questions.findIndex(q => q.type === 'subjective');
+                        return (
+                          <div key={index} className="bg-gray-700 p-4 rounded-lg">
+                            <p className="font-medium mb-2">Question {objIndex + 1}: {question.text}</p>
+                            {question.image && (
+                              <img 
+                                src={question.image} 
+                                alt="Question Image" 
+                                className="max-w-full h-auto mb-4 rounded"
+                              />
+                            )}
+                            <div className="bg-gray-800 p-3 rounded">
+                              <p className="text-gray-400 mb-1">Student's Answer:</p>
+                              <p>{response.answers[objIndex] || 'No answer provided'}</p>
+                            </div>
+                            <div className="mt-2 bg-gray-800 p-3 rounded">
+                              <p className="text-gray-400 mb-1">Correct Answer:</p>
+                              <p>{testInfo.correctAnswers[objIndex]}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
