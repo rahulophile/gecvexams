@@ -66,7 +66,21 @@ const ViewTestResponses = () => {
       }
 
       if (data.success) {
-        setResponses(data.responses);
+        // Ensure each response has a valid score object
+        const processedResponses = data.responses.map(response => ({
+          ...response,
+          score: response.score || {
+            final: 0,
+            correct: 0,
+            incorrect: 0,
+            marksPerCorrect: 0,
+            marksForCorrect: 0,
+            marksDeducted: 0
+          },
+          answers: response.answers || {}
+        }));
+        
+        setResponses(processedResponses);
         setHasSubjective(data.hasSubjective);
         setTestInfo(data.testDetails);
       } else {
@@ -127,12 +141,12 @@ const ViewTestResponses = () => {
       
       // Test info in a table
       const testInfoData = [
-        ['Room Number', testInfo.roomNumber],
-        ['Date', testInfo.date],
-        ['Time', formatTo12Hour(testInfo.time)],
-        ['Duration', `${testInfo.duration} minutes`],
-        ['Marks Per Correct', `${testInfo.marksPerCorrect} marks`],
-        ['Negative Marking', `${testInfo.negativeMarking} marks per wrong answer`]
+        ['Room Number', testInfo.roomNumber || 'Not Available'],
+        ['Date', testInfo.date || 'Not Available'],
+        ['Time', formatTo12Hour(testInfo.time) || 'Not Available'],
+        ['Duration', `${testInfo.duration || 0} minutes`],
+        ['Marks Per Correct', `${testInfo.marksPerCorrect || 0} marks`],
+        ['Negative Marking', `${testInfo.negativeMarking || 0} marks per wrong answer`]
       ];
       
       doc.autoTable({
@@ -145,7 +159,7 @@ const ViewTestResponses = () => {
       });
 
       // Sort responses by score
-      const sortedResponses = [...responses].sort((a, b) => b.score.final - a.score.final);
+      const sortedResponses = [...responses].sort((a, b) => (b.score?.final || 0) - (a.score?.final || 0));
 
       // Add responses
       sortedResponses.forEach((response, index) => {
@@ -161,9 +175,9 @@ const ViewTestResponses = () => {
         doc.setTextColor(0, 0, 0);
         
         const studentInfo = [
-          ['Name', response.studentName],
-          ['Registration', response.regNo],
-          ['Branch', response.branch]
+          ['Name', response.studentName || 'Not Available'],
+          ['Registration', response.regNo || 'Not Available'],
+          ['Branch', response.branch || 'Not Available']
         ];
         
         doc.autoTable({
@@ -181,12 +195,12 @@ const ViewTestResponses = () => {
         doc.text('Score Information', 14, doc.previousAutoTable.finalY + 20);
         
         const scoreInfo = [
-          ['Final Score', response.score.final],
-          ['Correct Answers', response.score.correct],
-          ['Incorrect Answers', response.score.incorrect],
-          ['Marks Per Correct', response.score.marksPerCorrect],
-          ['Marks Awarded', response.score.marksForCorrect],
-          ['Marks Deducted', response.score.marksDeducted]
+          ['Final Score', response.score?.final || 0],
+          ['Correct Answers', response.score?.correct || 0],
+          ['Incorrect Answers', response.score?.incorrect || 0],
+          ['Marks Per Correct', response.score?.marksPerCorrect || 0],
+          ['Marks Awarded', response.score?.marksForCorrect || 0],
+          ['Marks Deducted', response.score?.marksDeducted || 0]
         ];
         
         doc.autoTable({
@@ -206,11 +220,11 @@ const ViewTestResponses = () => {
         const objectiveQuestions = testInfo.questions
           .filter(q => q.type === 'objective')
           .map((question, qIndex) => {
-            const studentAnswer = response.answers[qIndex] || 'Not Attempted';
-            const isCorrect = studentAnswer === testInfo.correctAnswers[qIndex];
+            const studentAnswer = response.answers?.[qIndex] || 'Not Attempted';
+            const isCorrect = studentAnswer === testInfo.correctAnswers?.[qIndex];
             return [
               `Q${qIndex + 1}`,
-              question.text,
+              question.text || 'Not Available',
               studentAnswer,
               isCorrect ? 'Correct' : 'Incorrect'
             ];
@@ -234,12 +248,12 @@ const ViewTestResponses = () => {
           .filter(q => q.type === 'subjective')
           .map((question, qIndex) => {
             const objIndex = testInfo.questions.findIndex(q => q.type === 'subjective');
-            const studentAnswer = response.answers[objIndex] || 'Not Attempted';
+            const studentAnswer = response.answers?.[objIndex] || 'Not Attempted';
             return [
               `Q${objIndex + 1}`,
-              question.text,
+              question.text || 'Not Available',
               studentAnswer,
-              testInfo.correctAnswers[objIndex]
+              testInfo.correctAnswers?.[objIndex] || 'Not Available'
             ];
           });
         
