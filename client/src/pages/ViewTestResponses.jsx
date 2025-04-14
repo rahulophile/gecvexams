@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import CustomAlert from '../components/CustomAlert';
 
 const ViewTestResponses = () => {
   const [roomNumber, setRoomNumber] = useState("");
@@ -9,7 +10,7 @@ const ViewTestResponses = () => {
   const [error, setError] = useState(null);
   const [testInfo, setTestInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
+  const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
 
   const formatTo12Hour = (time24) => {
     try {
@@ -19,23 +20,37 @@ const ViewTestResponses = () => {
       const hour12 = hour % 12 || 12;
       return `${hour12}:${minutes} ${ampm}`;
     } catch (error) {
-      return time24; // Return original time if conversion fails
+      return time24;
     }
   };
 
   const fetchTestResponses = async () => {
     if (!roomNumber.trim()) {
-      setError("Please enter a room number");
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Please enter a room number'
+      });
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setTestInfo(null); // Reset testInfo when fetching new responses
-    setResponses([]); // Reset responses when fetching new data
+    setTestInfo(null);
+    setResponses([]);
 
     try {
       const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setAlert({
+          show: true,
+          type: 'error',
+          title: 'Authentication Error',
+          message: 'Please login again'
+        });
+        return;
+      }
       
       const res = await fetch(`https://exam-server-gecv.onrender.com/api/get-test-responses/${roomNumber}`, {
         headers: { 
@@ -53,13 +68,23 @@ const ViewTestResponses = () => {
       if (data.success) {
         setResponses(data.responses);
         setHasSubjective(data.hasSubjective);
-        setTestInfo(data.testInfo);
+        setTestInfo(data.testDetails);
       } else {
-        setError(data.message);
+        setAlert({
+          show: true,
+          type: 'error',
+          title: 'Error',
+          message: data.message
+        });
       }
     } catch (error) {
       console.error("Error fetching responses:", error);
-      setError(error.message || "Failed to fetch responses");
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Error',
+        message: error.message || "Failed to fetch responses"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -109,36 +134,6 @@ const ViewTestResponses = () => {
         doc.text(`Marks Awarded: ${response.marksForCorrect}`, 14, startY + 70);
         doc.text(`Marks Deducted: ${response.marksDeducted}`, 14, startY + 80);
         doc.text(`(Score calculated as: ${response.marksForCorrect} - ${response.marksDeducted} = ${response.finalScore})`, 14, startY + 90);
-        
-        // Objective answers
-        if (response.objectiveAnswers && response.objectiveAnswers.length > 0) {
-          doc.text('Objective Answers:', 14, startY + 100);
-          const objectiveData = response.objectiveAnswers.map((answer, idx) => [
-            `Q${idx + 1}`,
-            answer.questionText,
-            answer.selectedAnswer,
-            answer.isCorrect ? 'Correct' : 'Incorrect'
-          ]);
-          
-          doc.autoTable({
-            startY: startY + 105,
-            head: [['Q.No', 'Question', 'Answer', 'Status']],
-            body: objectiveData,
-            theme: 'grid',
-            headStyles: { fillColor: [41, 128, 185] },
-            styles: { fontSize: 10 }
-          });
-        }
-
-        // Subjective answers
-        if (response.subjectiveAnswers && response.subjectiveAnswers.length > 0) {
-          doc.text('Subjective Answers:', 14, doc.previousAutoTable.finalY + 20);
-          response.subjectiveAnswers.forEach((answer, idx) => {
-            const y = doc.previousAutoTable.finalY + 30 + (idx * 40);
-            doc.text(`Q${answer.questionNumber}: ${answer.questionText}`, 14, y);
-            doc.text(`Answer: ${answer.answer}`, 20, y + 10);
-          });
-        }
 
         // Add page break if not the last response
         if (index < responses.length - 1) {
@@ -146,7 +141,6 @@ const ViewTestResponses = () => {
         }
       });
 
-      // Save the PDF
       doc.save(`test_responses_${roomNumber}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -191,30 +185,54 @@ const ViewTestResponses = () => {
                 {isLoading ? 'Loading...' : 'Fetch Responses'}
               </button>
             </div>
-            
-            {error && (
-              <div className="mt-4 p-3 bg-red-900/50 text-red-200 rounded-lg border border-red-700">
-                {error}
-              </div>
-            )}
           </div>
 
-          {/* Test Info - Only show if we have testInfo */}
+          {/* Alert Component */}
+          {alert.show && (
+            <CustomAlert
+              type={alert.type}
+              title={alert.title}
+              message={alert.message}
+              onClose={() => setAlert({ show: false, type: '', title: '', message: '' })}
+            />
+          )}
+
+          {/* Test Info */}
           {testInfo && (
-            <div className="bg-white p-4 rounded-lg shadow mb-4">
-              <h2 className="text-xl font-semibold mb-2">Test Information</h2>
-              <p>Room Number: {testInfo.roomNumber}</p>
-              <p>Date: {testInfo.date}</p>
-              <p>Time: {formatTo12Hour(testInfo.time)}</p>
-              <p>Duration: {testInfo.duration} minutes</p>
-              <p>Marks Per Correct Answer: {testInfo.marksPerCorrect} marks</p>
-              <p>Negative Marking: {testInfo.negativeMarking} marks per wrong answer</p>
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+              <h2 className="text-xl font-semibold mb-4">Test Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-400">Room Number</p>
+                  <p className="font-medium">{testInfo.roomNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Date</p>
+                  <p className="font-medium">{testInfo.date}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Time</p>
+                  <p className="font-medium">{formatTo12Hour(testInfo.time)}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Duration</p>
+                  <p className="font-medium">{testInfo.duration} minutes</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Marks Per Correct Answer</p>
+                  <p className="font-medium">{testInfo.marksPerCorrect} marks</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Negative Marking</p>
+                  <p className="font-medium">{testInfo.negativeMarking} marks per wrong answer</p>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Add download button with improved styling */}
+          {/* Download Button */}
           {responses.length > 0 && (
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-6">
               <button
                 onClick={downloadResponsesAsPDF}
                 className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
@@ -227,58 +245,40 @@ const ViewTestResponses = () => {
             </div>
           )}
 
-          {/* Responses section */}
+          {/* Responses Section */}
           {responses.length > 0 && (
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Student Responses</h2>
-                <button
-                  onClick={downloadResponsesAsPDF}
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Download PDF
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {responses.map((response, index) => (
-                  <div key={index} className="border p-4 rounded">
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="font-semibold">Student Name: {response.studentName}</p>
-                        <p>Registration: {response.regNo}</p>
-                        <p>Branch: {response.branch}</p>
+            <div className="space-y-6">
+              {responses.map((response, index) => (
+                <div key={index} className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Student Info */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Student Information</h3>
+                      <div className="space-y-2">
+                        <p><span className="text-gray-400">Name:</span> {response.studentName}</p>
+                        <p><span className="text-gray-400">Registration:</span> {response.regNo}</p>
+                        <p><span className="text-gray-400">Branch:</span> {response.branch}</p>
                       </div>
-                      <div className="bg-gray-50 p-3 rounded">
-                        <p className="font-semibold">Final Score: {response.finalScore}</p>
-                        <p>Correct Answers: {response.correctAnswers}</p>
-                        <p>Incorrect Answers: {response.incorrectAnswers}</p>
-                        <p>Marks Per Correct: {response.marksPerCorrect}</p>
-                        <p>Marks Awarded: {response.marksForCorrect}</p>
-                        <p>Marks Deducted: {response.marksDeducted}</p>
-                        <p className="text-sm text-gray-600">
-                          (Score calculated as: {response.marksForCorrect} - {response.marksDeducted} = {response.finalScore})
+                    </div>
+
+                    {/* Score Info */}
+                    <div className="bg-gray-700 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold mb-4">Score Information</h3>
+                      <div className="space-y-2">
+                        <p><span className="text-gray-400">Final Score:</span> {response.finalScore}</p>
+                        <p><span className="text-gray-400">Correct Answers:</span> {response.correctAnswers}</p>
+                        <p><span className="text-gray-400">Incorrect Answers:</span> {response.incorrectAnswers}</p>
+                        <p><span className="text-gray-400">Marks Per Correct:</span> {response.marksPerCorrect}</p>
+                        <p><span className="text-gray-400">Marks Awarded:</span> {response.marksForCorrect}</p>
+                        <p><span className="text-gray-400">Marks Deducted:</span> {response.marksDeducted}</p>
+                        <p className="text-sm text-gray-400 mt-2">
+                          Score calculation: {response.marksForCorrect} - {response.marksDeducted} = {response.finalScore}
                         </p>
                       </div>
                     </div>
-
-                    <div className="mt-4">
-                      <h3 className="font-semibold mb-2">Answers:</h3>
-                      <div className="space-y-2">
-                        {Object.entries(response.answers).map(([qIndex, answer]) => (
-                          <div key={qIndex} className="flex items-start gap-2">
-                            <span className="font-semibold">Q{qIndex}:</span>
-                            <span className={answer === testInfo.correctAnswers[qIndex] ? "text-green-600" : "text-red-600"}>
-                              {answer}
-                              {answer === testInfo.correctAnswers[qIndex] ? " ✓" : " ✗"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -288,3 +288,4 @@ const ViewTestResponses = () => {
 };
 
 export default ViewTestResponses;
+
