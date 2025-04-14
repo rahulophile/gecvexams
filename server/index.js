@@ -6,6 +6,10 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 
+// Import models
+const TestSubmission = require('./models/TestSubmission');
+const TestModel = require('./models/TestModel');
+
 const app = express();
 
 // Configure multer for image uploads
@@ -199,10 +203,13 @@ app.post("/api/create-test", async (req, res) => {
 
 app.post('/api/submit-test', async (req, res) => {
   try {
+    console.log('Received test submission:', req.body); // Debug log
+
     const { testId, userId, answers, subjectiveAnswers, score, correctAnswers, incorrectAnswers, totalQuestions } = req.body;
 
     // Validate required fields
     if (!testId || !userId || !answers || typeof score !== 'number' || isNaN(score)) {
+      console.log('Validation failed:', { testId, userId, answers, score }); // Debug log
       return res.status(400).json({
         success: false,
         message: 'Missing or invalid required fields'
@@ -211,6 +218,7 @@ app.post('/api/submit-test', async (req, res) => {
 
     // Validate score range
     if (score < 0 || score > totalQuestions) {
+      console.log('Invalid score range:', { score, totalQuestions }); // Debug log
       return res.status(400).json({
         success: false,
         message: 'Invalid score range'
@@ -221,6 +229,7 @@ app.post('/api/submit-test', async (req, res) => {
     if (typeof correctAnswers !== 'number' || typeof incorrectAnswers !== 'number' || 
         correctAnswers < 0 || incorrectAnswers < 0 || 
         correctAnswers + incorrectAnswers > totalQuestions) {
+      console.log('Invalid answer counts:', { correctAnswers, incorrectAnswers, totalQuestions }); // Debug log
       return res.status(400).json({
         success: false,
         message: 'Invalid answer counts'
@@ -240,7 +249,18 @@ app.post('/api/submit-test', async (req, res) => {
       submittedAt: new Date()
     });
 
-    await submission.save();
+    // Save the submission
+    try {
+      await submission.save();
+      console.log('Test submission saved successfully:', submission._id); // Debug log
+    } catch (saveError) {
+      console.error('Error saving submission:', saveError); // Debug log
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save test submission',
+        error: saveError.message
+      });
+    }
 
     res.json({
       success: true,
@@ -251,7 +271,7 @@ app.post('/api/submit-test', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error submitting test:', error);
+    console.error('Error in test submission endpoint:', error); // Debug log
     res.status(500).json({
       success: false,
       message: 'Failed to submit test',
