@@ -732,7 +732,8 @@ export default function Test() {
                     window.innerWidth <= 768 ? 'p-0' : 'p-6'
                   }`}>
                     <div key={currentQuestionIndex} id={`q${currentQuestionIndex}`} className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                      <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-800 break-words whitespace-pre-wrap">
+                    <h2 className="text-base sm:text-lg font-semibold sm:font-bold mb-4 text-gray-800 break-words whitespace-pre-wrap">
+
                         Q{currentQuestionIndex + 1}: {testData.questions[currentQuestionIndex].text}
                       </h2>
                       {testData.questions[currentQuestionIndex].type === "objective" && (
