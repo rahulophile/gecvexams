@@ -8,7 +8,7 @@ const fs = require('fs');
 
 // Import models
 const TestSubmission = require('./models/TestSubmission');
-const TestModel = require('./models/TestModel');
+const Test = require('./models/Test');
 
 const app = express();
 
@@ -171,7 +171,7 @@ app.post("/api/create-test", async (req, res) => {
     });
 
     // Create the test with processed questions
-    const newTest = new TestModel({ 
+    const newTest = new Test({ 
       roomNumber, 
       date, 
       time, 
