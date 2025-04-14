@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const moment = require("moment-timezone");
-const Test = require("../models/Test");
 // const Test = require("../models/Test"); // Ensure this is the correct path
 // hello
 
@@ -12,6 +11,41 @@ const router = express.Router();
 const ADMIN_USERNAME = "1901020";
 const ADMIN_PASSWORD_HASH = bcrypt.hashSync("190102002", 10); // Store hashed password securely
 const SECRET_KEY = "your_secret_key"; // Change this to a strong secret
+
+// ✅ MongoDB Test Schema
+const TestSchema = new mongoose.Schema({
+  roomNumber: { type: String, required: true, unique: true },
+  date: { type: String, required: true },
+  time: { type: String, required: true },
+  duration: { type: Number, required: true },
+  negativeMarking: { type: Number, required: true },
+  questions: [{
+    type: { 
+      type: String, 
+      enum: ['objective', 'subjective'], 
+      required: true 
+    },
+    text: { type: String, required: true },
+    options: { 
+      type: [String], 
+      required: function() { return this.type === 'objective'; } 
+    },
+    correctAnswer: { type: String, required: true },
+    image: { type: String, required: false }
+  }],
+  correctAnswers: { type: Object, required: true },
+  submissions: [
+    {
+      studentName: String,
+      branch: String,
+      regNo: String,
+      answers: Object,
+      submittedAt: { type: Date, default: Date.now }
+    }
+  ]
+});
+
+const TestModel = mongoose.model("Test", TestSchema);
 
 // ✅ Admin Login Route
 router.post("/admin-login", async (req, res) => {
@@ -117,7 +151,7 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
       }
     }
 
-    const existingTest = await Test.findOne({ roomNumber });
+    const existingTest = await TestModel.findOne({ roomNumber });
     if (existingTest) {
       return res.status(400).json({
         success: false,
@@ -129,7 +163,7 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
     const localDateTime = moment.tz(`${date} ${time}`, "Asia/Kolkata");
     
     // Store the date and time in local timezone
-    const newTest = new Test({
+    const newTest = new TestModel({
       roomNumber,
       date: localDateTime.format("YYYY-MM-DD"),
       time: localDateTime.format("HH:mm"),
@@ -156,7 +190,7 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
 // ✅ Get All Tests (Admin Only)
 router.get("/get-tests", verifyAdmin, async (req, res) => {
   try {
-    const tests = await Test.find();
+    const tests = await TestModel.find();
     res.status(200).json({ success: true, tests });
   } catch (error) {
     console.error("Error fetching tests:", error);
@@ -168,7 +202,7 @@ router.get("/get-tests", verifyAdmin, async (req, res) => {
 router.get("/get-test/:roomNumber", async (req, res) => {
   try {
     const { roomNumber } = req.params;
-    const test = await Test.findOne({ roomNumber });
+    const test = await TestModel.findOne({ roomNumber });
     
     if (!test) {
       return res.status(404).json({ success: false, message: "Test not found" });
@@ -191,7 +225,7 @@ router.get("/get-test/:roomNumber", async (req, res) => {
 router.delete("/delete-test/:roomNumber", verifyAdmin, async (req, res) => {
   try {
     const { roomNumber } = req.params;
-    const deletedTest = await Test.findOneAndDelete({ roomNumber });
+    const deletedTest = await TestModel.findOneAndDelete({ roomNumber });
 
     if (!deletedTest) {
       return res.status(404).json({ success: false, error: "Test not found!" });
@@ -210,7 +244,7 @@ router.post("/submit-test", async (req, res) => {
     const { roomNumber, userDetails, answers } = req.body;
     
     // Find and update in one operation
-    const test = await Test.findOneAndUpdate(
+    const test = await TestModel.findOneAndUpdate(
       { roomNumber: roomNumber },
       {
         $push: {
@@ -251,7 +285,7 @@ router.post("/submit-test", async (req, res) => {
 router.get("/verify-room/:roomNumber", async (req, res) => {
   try {
     const { roomNumber } = req.params;
-    const test = await Test.findOne({ roomNumber });
+    const test = await TestModel.findOne({ roomNumber });
     
     if (!test) {
       return res.status(404).json({ 
@@ -330,7 +364,7 @@ router.post("/check-registration", async (req, res) => {
   try {
     const { roomNumber, regNo } = req.body;
     
-    const test = await Test.findOne({ roomNumber });
+    const test = await TestModel.findOne({ roomNumber });
     if (!test) {
       return res.status(404).json({ 
         success: false, 
@@ -363,7 +397,7 @@ router.post("/check-registration", async (req, res) => {
 // Define a new route
 router.get("/responses", async (req, res) => {
   try {
-    const tests = await Test.find();
+    const tests = await TestModel.find();
     res.json({ success: true, responses: tests });
   } catch (error) {
     console.error("Error fetching responses:", error);
@@ -411,7 +445,7 @@ router.get('/verify-admin', verifyAdminToken, (req, res) => {
 router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res) => {
   try {
     const { roomNumber } = req.params;
-    const test = await Test.findOne({ roomNumber });
+    const test = await TestModel.findOne({ roomNumber });
     
     if (!test) {
       return res.status(404).json({ 
@@ -487,7 +521,7 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
 router.get("/check-room/:roomNumber", verifyAdmin, async (req, res) => {
   try {
     const { roomNumber } = req.params;
-    const existingTest = await Test.findOne({ roomNumber });
+    const existingTest = await TestModel.findOne({ roomNumber });
     
     res.json({
       success: true,

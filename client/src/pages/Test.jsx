@@ -127,81 +127,59 @@ export default function Test() {
     });
   };
 
-  const handleSubmit = async () => {
-    try {
-      // Calculate score with negative marking
-      let totalScore = 0;
-      let correctAnswers = 0;
-      let incorrectAnswers = 0;
-      
-      testData.questions.forEach((question, index) => {
-        if (question.type === 'objective') {
-          const userAnswer = selectedAnswers[index];
-          const correctAnswer = question.correctAnswer;
-          
-          if (userAnswer === correctAnswer) {
-            correctAnswers++;
-            totalScore += 1; // Add 1 for correct answer
-          } else if (userAnswer !== undefined) {
-            incorrectAnswers++;
-            // Calculate negative marking based on the format (numerator/denominator or decimal)
-            const negativeMark = question.negativeMarking || '0';
-            let negativeValue = 0;
-            
-            if (negativeMark.includes('/')) {
-              // Handle fraction format (e.g., "1/3")
-              const [numerator, denominator] = negativeMark.split('/').map(Number);
-              if (denominator !== 0) {
-                negativeValue = numerator / denominator;
-              }
-            } else {
-              // Handle decimal or integer format
-              negativeValue = parseFloat(negativeMark) || 0;
+  const handleSubmit = () => {
+    setShowSubmitConfirm(true);
+  };
+
+  const handleSubmitConfirmed = async (confirmed) => {
+    if (confirmed) {
+      try {
+        const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            roomNumber,
+            userDetails,
+            answers: {
+              ...selectedAnswers,
+              ...subjectiveAnswers
             }
-            
-            totalScore -= negativeValue;
-          }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
-      });
 
-      // Ensure total score doesn't go below 0
-      totalScore = Math.max(0, totalScore);
+        const data = await response.json();
+        if (data.success) {
+          // Exit fullscreen only after successful submission
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          } else if (document.webkitFullscreenElement) {
+            await document.webkitExitFullscreen();
+          } else if (document.mozFullScreenElement) {
+            await document.mozCancelFullScreen();
+          } else if (document.msFullscreenElement) {
+            await document.msExitFullscreen();
+          }
 
-      // Round the score to 2 decimal places to avoid floating point precision issues
-      totalScore = Math.round(totalScore * 100) / 100;
-
-      const response = await fetch('https://exam-server-gecv.onrender.com/api/submit-test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          testId: testData._id,
-          userId: userDetails._id,
-          answers: selectedAnswers,
-          subjectiveAnswers,
-          score: totalScore,
-          correctAnswers,
-          incorrectAnswers,
-          totalQuestions: testData.questions.length
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit test');
-      }
-
-      const data = await response.json();
-      if (data.success) {
+          setSubmissionStatus('success');
+          setShowSubmissionPopup(true);
+          // Navigate to home after 9 seconds
+          setTimeout(() => {
+            navigate('/');
+          }, 9000);
+        }
+      } catch (error) {
+        console.error("Error submitting test:", error);
+        setSubmissionStatus('error');
         setShowSubmissionPopup(true);
-        setSubmissionStatus('success');
       }
-    } catch (error) {
-      console.error('Error submitting test:', error);
-      setSubmissionStatus('error');
     }
+    setShowSubmitConfirm(false);
   };
 
   const enterFullscreen = () => {
@@ -635,59 +613,6 @@ export default function Test() {
     if (!isFullscreenNow && testStarted) {
       enterFullscreen();
     }
-  };
-
-  const handleDownloadResponses = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
-    const lineHeight = 7;
-    let y = margin;
-
-    // Add title
-    doc.setFontSize(16);
-    doc.text('Test Responses', pageWidth / 2, y, { align: 'center' });
-    y += lineHeight * 2;
-
-    // Add student details
-    doc.setFontSize(12);
-    doc.text(`Name: ${userDetails.name}`, margin, y);
-    y += lineHeight;
-    doc.text(`Branch: ${userDetails.branch}`, margin, y);
-    y += lineHeight;
-    doc.text(`Registration Number: ${userDetails.regNo}`, margin, y);
-    y += lineHeight * 2;
-
-    // Add responses
-    doc.setFontSize(12);
-    testData.questions.forEach((question, index) => {
-      // Check if we need a new page
-      if (y > pageHeight - margin) {
-        doc.addPage();
-        y = margin;
-      }
-
-      // Add question number and text
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Q${index + 1}: ${question.text}`, margin, y);
-      y += lineHeight;
-
-      // Add response
-      doc.setFont('helvetica', 'normal');
-      const response = question.type === 'subjective' 
-        ? subjectiveAnswers[index] || 'No answer provided'
-        : question.options[selectedAnswers[index]] || 'No answer selected';
-      
-      // Split text into lines if it's too long
-      const responseLines = doc.splitTextToSize(response, pageWidth - 2 * margin);
-      doc.text(responseLines, margin, y);
-      y += lineHeight * responseLines.length;
-      y += lineHeight; // Add extra space between questions
-    });
-
-    // Save the PDF
-    doc.save(`test_responses_${userDetails.regNo}.pdf`);
   };
 
   if (isLoading) {

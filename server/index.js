@@ -6,10 +6,6 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 
-// Import models
-const TestSubmission = require('./models/TestSubmission');
-const Test = require('./models/Test');
-
 const app = express();
 
 // Configure multer for image uploads
@@ -49,19 +45,16 @@ const upload = multer({
 
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 // Configure CORS
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://examgecv.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
-
-// Handle preflight requests
-app.options('*', cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://examgecv.onrender.com"],
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+  })
+);
 
 // Serve static files from uploads directory with proper caching
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
@@ -134,173 +127,57 @@ process.on("SIGINT", async () => {
 });
 
 app.post("/api/create-test", async (req, res) => {
-  try {
-    const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
-    
-    // Validate questions array
-    if (!Array.isArray(questions)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Questions must be an array" 
-      });
-    }
-
-    // Process each question with proper negative marking
-    const processedQuestions = questions.map(question => {
-      // Ensure negative marking is properly stored
-      if (question.negativeMarking) {
-        // If it's a fraction (e.g., "1/3"), keep it as is
-        if (typeof question.negativeMarking === 'string' && question.negativeMarking.includes('/')) {
-          question.negativeMarking = question.negativeMarking;
-        } 
-        // If it's a number, convert to string
-        else if (typeof question.negativeMarking === 'number') {
-          question.negativeMarking = question.negativeMarking.toString();
-        }
-      } else {
-        question.negativeMarking = '0';
-      }
-
-      if (question.type === 'subjective' && question.image) {
-        // Ensure the image URL is properly formatted
-        if (!question.image.startsWith('http')) {
-          question.image = `${req.protocol}://${req.get('host')}${question.image}`;
-        }
-      }
-      return question;
-    });
-
-    // Create the test with processed questions
-    const newTest = new Test({ 
-      roomNumber, 
-      date, 
-      time, 
-      duration, 
-      negativeMarking, 
-      questions: processedQuestions,
-      correctAnswers: questions.reduce((acc, q, index) => {
-        acc[index] = q.correctAnswer;
-        return acc;
-      }, {})
-    });
-
-    await newTest.save();
-    
-    res.status(201).json({ 
-      success: true, 
-      message: "Test created successfully!",
-      test: newTest
-    });
-  } catch (error) {
-    console.error("Error creating test:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error",
-      error: error.message 
-    });
-  }
-});
-
-app.post('/api/submit-test', async (req, res) => {
-  try {
-    console.log('Received test submission:', req.body); // Debug log
-
-    const { testId, userId, answers, subjectiveAnswers, score, correctAnswers, incorrectAnswers, totalQuestions } = req.body;
-
-    // Validate required fields
-    if (!testId || !userId || !answers || typeof score !== 'number' || isNaN(score)) {
-      console.log('Validation failed:', { testId, userId, answers, score }); // Debug log
-      return res.status(400).json({
-        success: false,
-        message: 'Missing or invalid required fields'
-      });
-    }
-
-    // Validate score range
-    if (score < 0 || score > totalQuestions) {
-      console.log('Invalid score range:', { score, totalQuestions }); // Debug log
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid score range'
-      });
-    }
-
-    // Validate answer counts
-    if (typeof correctAnswers !== 'number' || typeof incorrectAnswers !== 'number' || 
-        correctAnswers < 0 || incorrectAnswers < 0 || 
-        correctAnswers + incorrectAnswers > totalQuestions) {
-      console.log('Invalid answer counts:', { correctAnswers, incorrectAnswers, totalQuestions }); // Debug log
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid answer counts'
-      });
-    }
-
-    // Create a new test submission
-    const submission = new TestSubmission({
-      testId,
-      userId,
-      answers,
-      subjectiveAnswers: subjectiveAnswers || {},
-      score: Number(score.toFixed(2)),
-      correctAnswers,
-      incorrectAnswers,
-      totalQuestions,
-      submittedAt: new Date()
-    });
-
-    // Save the submission
     try {
-      await submission.save();
-      console.log('Test submission saved successfully:', submission._id); // Debug log
-    } catch (saveError) {
-      console.error('Error saving submission:', saveError); // Debug log
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to save test submission',
-        error: saveError.message
+      const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
+      
+      // Validate questions array
+      if (!Array.isArray(questions)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Questions must be an array" 
+        });
+      }
+
+      // Process each question
+      const processedQuestions = questions.map(question => {
+        if (question.type === 'subjective' && question.image) {
+          // Ensure the image URL is properly formatted
+          if (!question.image.startsWith('http')) {
+            question.image = `${req.protocol}://${req.get('host')}${question.image}`;
+          }
+        }
+        return question;
+      });
+
+      // Create the test with processed questions
+      const newTest = new TestModel({ 
+        roomNumber, 
+        date, 
+        time, 
+        duration, 
+        negativeMarking, 
+        questions: processedQuestions,
+        correctAnswers: questions.reduce((acc, q, index) => {
+          acc[index] = q.correctAnswer;
+          return acc;
+        }, {})
+      });
+
+      await newTest.save();
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Test created successfully!",
+        test: newTest
+      });
+    } catch (error) {
+      console.error("Error creating test:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Server error",
+        error: error.message 
       });
     }
-
-    res.json({
-      success: true,
-      message: 'Test submitted successfully',
-      submission: {
-        ...submission.toObject(),
-        score: Number(submission.score.toFixed(2))
-      }
-    });
-  } catch (error) {
-    console.error('Error in test submission endpoint:', error); // Debug log
-    res.status(500).json({
-      success: false,
-      message: 'Failed to submit test',
-      error: error.message
-    });
-  }
-});
-
-// Add route to get test results
-app.get('/api/test-results/:testId', async (req, res) => {
-  try {
-    const { testId } = req.params;
-    
-    const submissions = await TestSubmission.find({ testId })
-      .populate('userId', 'name regNo branch')
-      .sort({ score: -1 });
-
-    res.json({
-      success: true,
-      submissions
-    });
-  } catch (error) {
-    console.error('Error fetching test results:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch test results',
-      error: error.message
-    });
-  }
 });
 
 // Start Server
