@@ -87,10 +87,11 @@ const ViewTestResponses = () => {
       doc.text(`Date: ${testInfo.date}`, 14, 35);
       doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 45);
       doc.text(`Duration: ${testInfo.duration} minutes`, 14, 55);
+      doc.text(`Negative Marking: ${testInfo.negativeMarking} marks per wrong answer`, 14, 65);
 
       // Add responses
       responses.forEach((response, index) => {
-        const startY = index === 0 ? 65 : doc.previousAutoTable.finalY + 20;
+        const startY = index === 0 ? 75 : doc.previousAutoTable.finalY + 20;
         
         // Student info
         doc.setFontSize(14);
@@ -98,11 +99,16 @@ const ViewTestResponses = () => {
         doc.setFontSize(12);
         doc.text(`Registration: ${response.regNo}`, 14, startY + 10);
         doc.text(`Branch: ${response.branch}`, 14, startY + 20);
-        doc.text(`Score: ${response.objectiveScore}/${response.totalObjective}`, 14, startY + 30);
-
+        
+        // Score information
+        doc.text(`Score: ${response.score.final}`, 14, startY + 30);
+        doc.text(`Correct Answers: ${response.score.correct}`, 14, startY + 40);
+        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, startY + 50);
+        doc.text(`Marks Deducted: ${(response.score.incorrect * response.score.negativeMarking).toFixed(2)}`, 14, startY + 60);
+        
         // Objective answers
         if (response.objectiveAnswers && response.objectiveAnswers.length > 0) {
-          doc.text('Objective Answers:', 14, startY + 45);
+          doc.text('Objective Answers:', 14, startY + 70);
           const objectiveData = response.objectiveAnswers.map((answer, idx) => [
             `Q${idx + 1}`,
             answer.questionText,
@@ -111,7 +117,7 @@ const ViewTestResponses = () => {
           ]);
           
           doc.autoTable({
-            startY: startY + 50,
+            startY: startY + 75,
             head: [['Q.No', 'Question', 'Answer', 'Status']],
             body: objectiveData,
             theme: 'grid',
@@ -139,12 +145,12 @@ const ViewTestResponses = () => {
       // Save the PDF
       doc.save(`test_responses_${roomNumber}.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error("Error generating PDF:", error);
       setAlert({
         show: true,
         type: 'error',
         title: 'Error',
-        message: 'Failed to generate PDF. Please try again.'
+        message: 'Failed to generate PDF'
       });
     }
   };
@@ -207,10 +213,6 @@ const ViewTestResponses = () => {
                   <p className="font-medium">{testInfo.duration} minutes</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Total Questions</p>
-                  <p className="font-medium">{testInfo.totalQuestions}</p>
-                </div>
-                <div>
                   <p className="text-gray-400">Negative Marking</p>
                   <p className="font-medium">{testInfo.negativeMarking} marks per wrong answer</p>
                 </div>
@@ -247,14 +249,14 @@ const ViewTestResponses = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold">
-                        Score: {response.finalScore}/{response.totalQuestions}
+                        Score: {response.score.final}
                       </p>
                       <p className="text-sm text-gray-400">
-                        Correct: {response.correctAnswers} | Wrong: {response.incorrectAnswers}
+                        Correct: {response.score.correct} | Wrong: {response.score.incorrect}
                       </p>
-                      {response.incorrectAnswers > 0 && (
+                      {response.score.incorrect > 0 && (
                         <p className="text-sm text-red-400">
-                          Deducted: {response.incorrectAnswers * response.negativeMarking} marks
+                          Deducted: {(response.score.incorrect * response.score.negativeMarking).toFixed(2)} marks
                         </p>
                       )}
                     </div>
