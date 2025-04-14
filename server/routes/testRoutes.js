@@ -19,7 +19,12 @@ const TestSchema = new mongoose.Schema({
   time: { type: String, required: true },
   duration: { type: Number, required: true },
   negativeMarking: { type: Number, required: true },
-  questions: { type: Array, required: true },
+  questions: [{
+    type: { type: String, enum: ['multiple-choice', 'subjective'], required: true },
+    question: { type: String, required: true },
+    options: { type: [String], required: function() { return this.type === 'multiple-choice'; } },
+    correctAnswer: { type: String, required: true }
+  }],
   correctAnswers: { type: Object, required: true },
   submissions: [
     {
@@ -410,7 +415,7 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
           const answer = submission.answers ? submission.answers[index] : null;
           subjectiveAnswers.push({
             questionNumber: index + 1,
-            questionText: question.text,
+            questionText: question.question,
             answer: answer ? answer.trim() : "Did not attempt this question"
           });
         }

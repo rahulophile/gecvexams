@@ -21,6 +21,7 @@ export default function Test() {
   const [testStarted, setTestStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [subjectiveAnswers, setSubjectiveAnswers] = useState({});
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
@@ -101,10 +102,17 @@ export default function Test() {
   }, [testStarted, timeLeft, updateTimer]);
 
   const handleAnswerChange = (questionIndex, selectedOption) => {
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [questionIndex]: selectedOption
-    }));
+    if (testData.questions[questionIndex].type === 'subjective') {
+      setSubjectiveAnswers(prev => ({
+        ...prev,
+        [questionIndex]: selectedOption
+      }));
+    } else {
+      setSelectedAnswers(prev => ({
+        ...prev,
+        [questionIndex]: selectedOption
+      }));
+    }
   };
 
   const handleMarkForReview = (qIndex) => {
@@ -134,7 +142,10 @@ export default function Test() {
           body: JSON.stringify({
             roomNumber,
             userDetails,
-            answers: selectedAnswers
+            answers: {
+              ...selectedAnswers,
+              ...subjectiveAnswers
+            }
           })
         });
 
@@ -247,7 +258,10 @@ export default function Test() {
           body: JSON.stringify({
             roomNumber,
             userDetails,
-            answers: selectedAnswers
+            answers: {
+              ...selectedAnswers,
+              ...subjectiveAnswers
+            }
           })
         });
 
@@ -570,7 +584,10 @@ export default function Test() {
         body: JSON.stringify({
           roomNumber,
           userDetails,
-          answers: selectedAnswers,
+          answers: {
+            ...selectedAnswers,
+            ...subjectiveAnswers
+          },
           violation: true
         })
       });
@@ -783,7 +800,7 @@ export default function Test() {
                               <img 
                                 src={testData.questions[currentQuestionIndex].image} 
                                 alt="Question image" 
-                                className="w-full h-auto max-w-full object-contain rounded-lg border border-gray-700"
+                                className="w-full max-w-md h-auto object-contain rounded-lg border border-gray-700"
                                 style={{ 
                                   maxHeight: '300px',
                                   width: '100%',
@@ -799,7 +816,7 @@ export default function Test() {
                             </div>
                           )}
                           <textarea
-                            value={selectedAnswers[currentQuestionIndex] || ''}
+                            value={subjectiveAnswers[currentQuestionIndex] || ''}
                             onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
                             placeholder="Enter your answer here"
                             className="w-full p-3 border rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
