@@ -757,7 +757,7 @@ export default function Test() {
                                       <div className="w-2 h-2 rounded-full bg-blue-500" />
                                     )}
                                   </div>
-                                  <span className="text-gray-700">{option}</span>
+                                  <span className="text-sm sm:text-base text-gray-700">{option}</span>
                                 </div>
                               </div>
                             );
