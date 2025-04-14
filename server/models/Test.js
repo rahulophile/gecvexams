@@ -1,37 +1,55 @@
 const mongoose = require("mongoose");
 
-const TestSchema = new mongoose.Schema({
-  roomNumber: { type: String, required: true, unique: true },
-  date: { type: String, required: true },
-  time: { type: String, required: true },
-  duration: { type: Number, required: true },
-  negativeMarking: { type: Number, required: true },
-  questions: { 
-    type: Array, 
-    required: true,
-    validate: {
-      validator: function(questions) {
-        return questions.every(q => {
-          if (q.type === 'subjective') {
-            return typeof q.text === 'string' && 
-                   (q.image === undefined || typeof q.image === 'string');
-          }
-          return true;
-        });
-      },
-      message: 'Invalid question format'
+const questionSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['objective', 'subjective'],
+    required: true
+  },
+  options: [{
+    type: String
+  }],
+  correctAnswer: {
+    type: Number,
+    required: function() {
+      return this.type === 'objective';
     }
   },
-  correctAnswers: { type: Object, required: true },
-  submissions: [
-    {
-      studentName: String,
-      branch: String,
-      regNo: String,
-      answers: Object,
-      submittedAt: { type: Date, default: Date.now }
-    }
-  ]
+  negativeMarking: {
+    type: String, // Can be "1/3", "0.33", "1" etc.
+    default: '0'
+  },
+  image: {
+    type: String
+  }
 });
 
-module.exports = mongoose.models.Test || mongoose.model("Test", TestSchema);
+const testSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String
+  },
+  duration: {
+    type: Number, // in minutes
+    required: true
+  },
+  questions: [questionSchema],
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+module.exports = mongoose.model('Test', testSchema);

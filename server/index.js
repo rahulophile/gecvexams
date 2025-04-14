@@ -180,6 +180,63 @@ app.post("/api/create-test", async (req, res) => {
     }
 });
 
+app.post('/api/submit-test', async (req, res) => {
+  try {
+    const { testId, userId, answers, subjectiveAnswers, score, correctAnswers, incorrectAnswers, totalQuestions } = req.body;
+
+    // Create a new test submission
+    const submission = new TestSubmission({
+      testId,
+      userId,
+      answers,
+      subjectiveAnswers,
+      score,
+      correctAnswers,
+      incorrectAnswers,
+      totalQuestions,
+      submittedAt: new Date()
+    });
+
+    await submission.save();
+
+    res.json({
+      success: true,
+      message: 'Test submitted successfully',
+      submission
+    });
+  } catch (error) {
+    console.error('Error submitting test:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit test',
+      error: error.message
+    });
+  }
+});
+
+// Add route to get test results
+app.get('/api/test-results/:testId', async (req, res) => {
+  try {
+    const { testId } = req.params;
+    
+    const submissions = await TestSubmission.find({ testId })
+      .populate('userId', 'name regNo branch')
+      .sort({ score: -1 });
+
+    res.json({
+      success: true,
+      submissions
+    });
+  } catch (error) {
+    console.error('Error fetching test results:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch test results',
+      error: error.message
+    });
+  }
+});
+
 // Start Server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

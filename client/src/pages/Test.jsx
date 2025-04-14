@@ -127,59 +127,74 @@ export default function Test() {
     });
   };
 
-  const handleSubmit = () => {
-    setShowSubmitConfirm(true);
-  };
-
-  const handleSubmitConfirmed = async (confirmed) => {
-    if (confirmed) {
-      try {
-        const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            roomNumber,
-            userDetails,
-            answers: {
-              ...selectedAnswers,
-              ...subjectiveAnswers
+  const handleSubmit = async () => {
+    try {
+      // Calculate score with negative marking
+      let totalScore = 0;
+      let correctAnswers = 0;
+      let incorrectAnswers = 0;
+      
+      testData.questions.forEach((question, index) => {
+        if (question.type === 'objective') {
+          const userAnswer = selectedAnswers[index];
+          const correctAnswer = question.correctAnswer;
+          
+          if (userAnswer === correctAnswer) {
+            correctAnswers++;
+            totalScore += 1; // Add 1 for correct answer
+          } else if (userAnswer !== undefined) {
+            incorrectAnswers++;
+            // Calculate negative marking based on the format (numerator/denominator or decimal)
+            const negativeMark = question.negativeMarking || 0;
+            let negativeValue = 0;
+            
+            if (typeof negativeMark === 'string' && negativeMark.includes('/')) {
+              // Handle fraction format (e.g., "1/3")
+              const [numerator, denominator] = negativeMark.split('/').map(Number);
+              negativeValue = numerator / denominator;
+            } else {
+              // Handle decimal or integer format
+              negativeValue = parseFloat(negativeMark);
             }
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          // Exit fullscreen only after successful submission
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else if (document.webkitFullscreenElement) {
-            await document.webkitExitFullscreen();
-          } else if (document.mozFullScreenElement) {
-            await document.mozCancelFullScreen();
-          } else if (document.msFullscreenElement) {
-            await document.msExitFullscreen();
+            
+            totalScore -= negativeValue;
           }
-
-          setSubmissionStatus('success');
-          setShowSubmissionPopup(true);
-          // Navigate to home after 9 seconds
-          setTimeout(() => {
-            navigate('/');
-          }, 9000);
         }
-      } catch (error) {
-        console.error("Error submitting test:", error);
-        setSubmissionStatus('error');
-        setShowSubmissionPopup(true);
+      });
+
+      // Ensure total score doesn't go below 0
+      totalScore = Math.max(0, totalScore);
+
+      const response = await fetch('http://localhost:5000/api/submit-test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          testId: testData._id,
+          userId: userDetails._id,
+          answers: selectedAnswers,
+          subjectiveAnswers,
+          score: totalScore,
+          correctAnswers,
+          incorrectAnswers,
+          totalQuestions: testData.questions.length
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit test');
       }
+
+      const data = await response.json();
+      if (data.success) {
+        setShowSubmissionPopup(true);
+        setSubmissionStatus('success');
+      }
+    } catch (error) {
+      console.error('Error submitting test:', error);
+      setSubmissionStatus('error');
     }
-    setShowSubmitConfirm(false);
   };
 
   const enterFullscreen = () => {
