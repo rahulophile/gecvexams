@@ -168,10 +168,10 @@ export default function Test() {
 
           setSubmissionStatus('success');
           setShowSubmissionPopup(true);
-          // Navigate to home after 3 seconds
+          // Navigate to home after 9 seconds
           setTimeout(() => {
             navigate('/');
-          }, 3000);
+          }, 9000);
         }
       } catch (error) {
         console.error("Error submitting test:", error);
