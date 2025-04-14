@@ -615,6 +615,59 @@ export default function Test() {
     }
   };
 
+  const handleDownloadResponses = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const lineHeight = 7;
+    let y = margin;
+
+    // Add title
+    doc.setFontSize(16);
+    doc.text('Test Responses', pageWidth / 2, y, { align: 'center' });
+    y += lineHeight * 2;
+
+    // Add student details
+    doc.setFontSize(12);
+    doc.text(`Name: ${userDetails.name}`, margin, y);
+    y += lineHeight;
+    doc.text(`Branch: ${userDetails.branch}`, margin, y);
+    y += lineHeight;
+    doc.text(`Registration Number: ${userDetails.regNo}`, margin, y);
+    y += lineHeight * 2;
+
+    // Add responses
+    doc.setFontSize(12);
+    testData.questions.forEach((question, index) => {
+      // Check if we need a new page
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+
+      // Add question number and text
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Q${index + 1}: ${question.text}`, margin, y);
+      y += lineHeight;
+
+      // Add response
+      doc.setFont('helvetica', 'normal');
+      const response = question.type === 'subjective' 
+        ? subjectiveAnswers[index] || 'No answer provided'
+        : question.options[selectedAnswers[index]] || 'No answer selected';
+      
+      // Split text into lines if it's too long
+      const responseLines = doc.splitTextToSize(response, pageWidth - 2 * margin);
+      doc.text(responseLines, margin, y);
+      y += lineHeight * responseLines.length;
+      y += lineHeight; // Add extra space between questions
+    });
+
+    // Save the PDF
+    doc.save(`test_responses_${userDetails.regNo}.pdf`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
