@@ -293,40 +293,85 @@ export default function Test() {
     setShowExitConfirm(false);
   };
 
-  // Add screenshot prevention
+  // Add security measures
   useEffect(() => {
+    // Prevent copy, paste, cut
+    const preventCopyPaste = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toast.warning('Copy/Paste is not allowed during the test');
+      return false;
+    };
+
     // Prevent screenshots
     const preventScreenshot = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toast.warning('Screenshots are not allowed during the test');
+      return false;
+    };
+
+    // Prevent right-click menu
+    const preventContextMenu = (e) => {
       e.preventDefault();
       e.stopPropagation();
       return false;
     };
 
-    // Add event listeners for screenshot prevention
-    document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'PrintScreen' || e.key === 'p')) {
-        preventScreenshot(e);
+    // Prevent print screen
+    const preventPrintScreen = (e) => {
+      if (e.key === 'PrintScreen' || (e.ctrlKey && e.key === 'p') || (e.metaKey && e.key === 'p')) {
+        e.preventDefault();
+        e.stopPropagation();
+        toast.warning('Print screen is not allowed during the test');
+        return false;
       }
-    }, { capture: true });
+    };
 
-    // Prevent right-click menu
-    document.addEventListener('contextmenu', preventScreenshot, { capture: true });
-
-    // Prevent print screen key
-    document.addEventListener('keyup', (e) => {
-      if (e.key === 'PrintScreen') {
-        preventScreenshot(e);
+    // Prevent F12 and other dev tools
+    const preventDevTools = (e) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))) {
+        e.preventDefault();
+        e.stopPropagation();
+        toast.warning('Developer tools are not allowed during the test');
+        return false;
       }
-    }, { capture: true });
+    };
+
+    // Add event listeners
+    if (testStarted) {
+      document.addEventListener('copy', preventCopyPaste, { capture: true });
+      document.addEventListener('paste', preventCopyPaste, { capture: true });
+      document.addEventListener('cut', preventCopyPaste, { capture: true });
+      document.addEventListener('contextmenu', preventContextMenu, { capture: true });
+      document.addEventListener('keydown', preventPrintScreen, { capture: true });
+      document.addEventListener('keydown', preventDevTools, { capture: true });
+      
+      // Prevent drag and drop
+      document.addEventListener('dragstart', preventScreenshot, { capture: true });
+      document.addEventListener('drop', preventScreenshot, { capture: true });
+      
+      // Prevent taking screenshots using PrintScreen key
+      document.addEventListener('keyup', (e) => {
+        if (e.key === 'PrintScreen') {
+          preventScreenshot(e);
+        }
+      }, { capture: true });
+    }
 
     return () => {
-      document.removeEventListener('keydown', preventScreenshot, { capture: true });
-      document.removeEventListener('contextmenu', preventScreenshot, { capture: true });
-      document.removeEventListener('keyup', preventScreenshot, { capture: true });
+      document.removeEventListener('copy', preventCopyPaste, { capture: true });
+      document.removeEventListener('paste', preventCopyPaste, { capture: true });
+      document.removeEventListener('cut', preventCopyPaste, { capture: true });
+      document.removeEventListener('contextmenu', preventContextMenu, { capture: true });
+      document.removeEventListener('keydown', preventPrintScreen, { capture: true });
+      document.removeEventListener('keydown', preventDevTools, { capture: true });
+      document.removeEventListener('dragstart', preventScreenshot, { capture: true });
+      document.removeEventListener('drop', preventScreenshot, { capture: true });
     };
-  }, []);
+  }, [testStarted]);
 
-  // Update keyboard event handler
+  // Update keyboard event handler to include more restrictions
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Handle ESC key
