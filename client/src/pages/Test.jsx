@@ -736,37 +736,37 @@ export default function Test() {
                         Q{currentQuestionIndex + 1}: {testData.questions[currentQuestionIndex].text}
                       </h2>
                       {testData.questions[currentQuestionIndex].type === "objective" && (
-                        <div className="mb-4">
-                          <p className="text-base md:text-lg font-medium mb-2">{testData.questions[currentQuestionIndex].text}</p>
-                          <div className="space-y-2">
+                        <div className="mb-2">
+                          <p className="text-sm md:text-base font-medium mb-1">{testData.questions[currentQuestionIndex].text}</p>
+                          <div className="space-y-1">
                             {testData.questions[currentQuestionIndex].options.map((option, optionIndex) => (
                               <div 
                                 key={optionIndex} 
-                                className={`p-2 rounded-lg cursor-pointer transition-colors ${
+                                className={`p-1.5 rounded-lg cursor-pointer transition-colors ${
                                   selectedAnswers[currentQuestionIndex] === optionIndex
                                     ? 'bg-blue-600 text-white'
                                     : 'bg-gray-800 hover:bg-gray-700'
                                 }`}
                                 onClick={() => handleAnswerChange(currentQuestionIndex, optionIndex)}
                               >
-                                <span className="text-sm md:text-base">{option}</span>
+                                <span className="text-xs md:text-sm">{option}</span>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
                       {testData.questions[currentQuestionIndex].type === 'subjective' && (
-                        <div className="mb-4">
-                          <p className="text-base md:text-lg font-medium mb-1">{testData.questions[currentQuestionIndex].text}</p>
+                        <div className="mb-2">
+                          <p className="text-sm md:text-base font-medium mb-1">{testData.questions[currentQuestionIndex].text}</p>
                           {testData.questions[currentQuestionIndex].image && (
-                            <div className="my-2 w-full flex justify-center">
+                            <div className="mt-1 w-full flex justify-center">
                               <div className="relative w-full max-w-2xl mx-auto">
                                 <img 
                                   src={testData.questions[currentQuestionIndex].image} 
                                   alt="Question image" 
                                   className="w-full h-auto object-contain rounded-lg border border-gray-700"
                                   style={{ 
-                                    maxHeight: '300px',
+                                    maxHeight: '250px',
                                     width: '100%',
                                     height: 'auto',
                                     display: 'block'
@@ -775,7 +775,7 @@ export default function Test() {
                                     console.error('Error loading image:', e);
                                     e.target.style.display = 'none';
                                     const errorDiv = document.createElement('div');
-                                    errorDiv.className = 'text-red-500 text-center p-2 bg-red-100 rounded-lg text-sm';
+                                    errorDiv.className = 'text-red-500 text-center p-1 bg-red-100 rounded-lg text-xs';
                                     errorDiv.textContent = 'Failed to load image. Please try refreshing the page.';
                                     e.target.parentNode.appendChild(errorDiv);
                                   }}
@@ -784,15 +784,6 @@ export default function Test() {
                               </div>
                             </div>
                           )}
-                          <textarea
-                            value={subjectiveAnswers[currentQuestionIndex] || ''}
-                            onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
-                            onFocus={() => setIsTextareaFocused(true)}
-                            onBlur={() => setIsTextareaFocused(false)}
-                            placeholder="Enter your answer here"
-                            className="w-full p-3 border rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            style={{ minHeight: '100px', maxHeight: '200px' }}
-                          />
                         </div>
                       )}
                       <div className="mt-4 flex flex-wrap gap-2">
