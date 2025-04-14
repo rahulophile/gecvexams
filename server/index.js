@@ -49,10 +49,15 @@ app.use(express.json());
 // Configure CORS
 app.use(cors({
   origin: ['http://localhost:5173', 'https://examgecv.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Serve static files from uploads directory with proper caching
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
@@ -196,11 +201,29 @@ app.post('/api/submit-test', async (req, res) => {
   try {
     const { testId, userId, answers, subjectiveAnswers, score, correctAnswers, incorrectAnswers, totalQuestions } = req.body;
 
-    // Validate the score calculation
-    if (typeof score !== 'number' || isNaN(score)) {
+    // Validate required fields
+    if (!testId || !userId || !answers || typeof score !== 'number' || isNaN(score)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid score calculation'
+        message: 'Missing or invalid required fields'
+      });
+    }
+
+    // Validate score range
+    if (score < 0 || score > totalQuestions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid score range'
+      });
+    }
+
+    // Validate answer counts
+    if (typeof correctAnswers !== 'number' || typeof incorrectAnswers !== 'number' || 
+        correctAnswers < 0 || incorrectAnswers < 0 || 
+        correctAnswers + incorrectAnswers > totalQuestions) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid answer counts'
       });
     }
 
@@ -209,8 +232,8 @@ app.post('/api/submit-test', async (req, res) => {
       testId,
       userId,
       answers,
-      subjectiveAnswers,
-      score: Number(score.toFixed(2)), // Ensure score is stored with 2 decimal places
+      subjectiveAnswers: subjectiveAnswers || {},
+      score: Number(score.toFixed(2)),
       correctAnswers,
       incorrectAnswers,
       totalQuestions,
@@ -224,7 +247,7 @@ app.post('/api/submit-test', async (req, res) => {
       message: 'Test submitted successfully',
       submission: {
         ...submission.toObject(),
-        score: Number(submission.score.toFixed(2)) // Ensure score is returned with 2 decimal places
+        score: Number(submission.score.toFixed(2))
       }
     });
   } catch (error) {
