@@ -184,13 +184,21 @@ app.post('/api/submit-test', async (req, res) => {
   try {
     const { testId, userId, answers, subjectiveAnswers, score, correctAnswers, incorrectAnswers, totalQuestions } = req.body;
 
+    // Validate the score calculation
+    if (typeof score !== 'number' || isNaN(score)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid score calculation'
+      });
+    }
+
     // Create a new test submission
     const submission = new TestSubmission({
       testId,
       userId,
       answers,
       subjectiveAnswers,
-      score,
+      score: Number(score.toFixed(2)), // Ensure score is stored with 2 decimal places
       correctAnswers,
       incorrectAnswers,
       totalQuestions,
@@ -202,7 +210,10 @@ app.post('/api/submit-test', async (req, res) => {
     res.json({
       success: true,
       message: 'Test submitted successfully',
-      submission
+      submission: {
+        ...submission.toObject(),
+        score: Number(submission.score.toFixed(2)) // Ensure score is returned with 2 decimal places
+      }
     });
   } catch (error) {
     console.error('Error submitting test:', error);
