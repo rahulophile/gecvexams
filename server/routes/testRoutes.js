@@ -95,10 +95,10 @@ const verifyAdmin = (req, res, next) => {
 // ✅ Create Test Route (Admin Only)
 router.post("/create-test", verifyAdmin, async (req, res) => {
   try {
-    const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
+    const { roomNumber, date, time, duration, negativeMarking, marksPerCorrect, questions } = req.body;
 
     // Validate required fields
-    if (!roomNumber || !date || !time || !duration || negativeMarking === undefined || !questions) {
+    if (!roomNumber || !date || !time || !duration || negativeMarking === undefined || marksPerCorrect === undefined || !questions) {
       return res.status(400).json({ 
         success: false, 
         error: "All fields are required!" 
@@ -111,6 +111,15 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "Negative marking must be a non-negative number"
+      });
+    }
+
+    // Validate marks per correct
+    const parsedMarksPerCorrect = parseFloat(marksPerCorrect);
+    if (isNaN(parsedMarksPerCorrect) || parsedMarksPerCorrect <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Marks per correct must be a positive number"
       });
     }
 
@@ -188,6 +197,7 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
       time: localDateTime.format("HH:mm"),
       duration: Number(duration),
       negativeMarking: parsedNegativeMarking,
+      marksPerCorrect: Number(marksPerCorrect),
       questions,
       correctAnswers: questions.reduce((acc, q, index) => {
         acc[index] = q.correctAnswer;
