@@ -357,7 +357,7 @@ export default function CreateTest() {
                     value={roomNumber} 
                     onChange={(e) => {
                       setRoomNumber(e.target.value);
-                      setRoomStatus(null); // Clear previous status
+                      setRoomStatus(null);
                     }}
                     required
                     className="border p-3 flex-1 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -411,23 +411,11 @@ export default function CreateTest() {
                   className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-gray-300 mb-2">Negative Marking</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={negativeMarking}
-                  onChange={(e) => setNegativeMarking(e.target.value)}
-                  placeholder="Enter negative marking (e.g., 0.33)"
-                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-sm text-gray-400 mt-1">
-                  Marks deducted per wrong answer (can be decimal)
-                </p>
-              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="block text-gray-300 mb-2">Marks Per Correct Answer</label>
+                <label className="block text-gray-400 mb-2">Marks Per Correct Answer <span className="text-red-500">*</span></label>
                 <input
                   type="number"
                   step="0.01"
@@ -435,10 +423,25 @@ export default function CreateTest() {
                   value={marksPerCorrect}
                   onChange={(e) => setMarksPerCorrect(e.target.value)}
                   placeholder="Enter marks per correct answer (e.g., 1)"
-                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <p className="text-sm text-gray-400 mt-1">
-                  Marks awarded for each correct answer
+                <p className="mt-1 text-sm text-gray-500">
+                  Marks awarded for each correct answer (must be greater than 0)
+                </p>
+              </div>
+              <div>
+                <label className="block text-gray-400 mb-2">Negative Marking <span className="text-red-500">*</span></label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={negativeMarking}
+                  onChange={(e) => setNegativeMarking(e.target.value)}
+                  placeholder="Enter negative marking (e.g., 0.33)"
+                  className="border p-3 w-full rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Marks deducted per wrong answer (can be 0 for no negative marking)
                 </p>
               </div>
             </div>
