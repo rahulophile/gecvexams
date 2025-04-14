@@ -226,14 +226,28 @@ export default function CreateTest() {
         }
       }
 
+      // Prepare questions with correct answers
+      const preparedQuestions = questions.map((question, index) => {
+        if (question.type === 'objective') {
+          return {
+            ...question,
+            correctAnswer: correctAnswers[index] || question.options[0] // Use selected answer or first option as default
+          };
+        } else {
+          return {
+            ...question,
+            correctAnswer: question.text // For subjective questions, use the question text as correct answer
+          };
+        }
+      });
+
       const testData = {
         roomNumber: roomNumber.trim(),
         date,
         time,
         duration: Number(duration),
         negativeMarking: Number(negativeMarking),
-        questions,
-        correctAnswers,
+        questions: preparedQuestions
       };
 
       console.log("Sending test data:", testData);
@@ -250,41 +264,42 @@ export default function CreateTest() {
         return;
       }
 
-      const res = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(testData),
+        body: JSON.stringify(testData)
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      const data = await response.json();
+      if (!response.ok) {
         throw new Error(data.error || "Failed to create test");
       }
 
-      if (data.success) {
-        setAlert({
-          show: true,
-          type: "success",
-          title: "Success",
-          message: "Test created successfully!"
-        });
-        setTimeout(() => {
-          navigate("/admin-panel");
-        }, 2000);
-      } else {
-        throw new Error(data.error || "Failed to create test");
-      }
+      setAlert({
+        show: true,
+        type: "success",
+        title: "Success",
+        message: "Test created successfully!"
+      });
+
+      // Reset form
+      setRoomNumber("");
+      setDate("");
+      setTime("");
+      setDuration("");
+      setNegativeMarking("");
+      setQuestions([]);
+      setCorrectAnswers({});
     } catch (error) {
       console.error("Error creating test:", error);
       setAlert({
         show: true,
         type: "error",
         title: "Error",
-        message: error.message || "Error creating test. Please try again."
+        message: error.message || "Failed to create test"
       });
     }
   };

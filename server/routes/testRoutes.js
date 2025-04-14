@@ -85,7 +85,7 @@ const verifyAdmin = (req, res, next) => {
 // ✅ Create Test Route (Admin Only)
 router.post("/create-test", verifyAdmin, async (req, res) => {
   try {
-    const { roomNumber, date, time, duration, negativeMarking, questions, correctAnswers } = req.body;
+    const { roomNumber, date, time, duration, negativeMarking, questions } = req.body;
 
     // Validate required fields
     if (!roomNumber || !date || !time || !duration || negativeMarking === undefined || !questions) {
