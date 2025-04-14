@@ -88,7 +88,7 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
     const { roomNumber, date, time, duration, negativeMarking, questions, correctAnswers } = req.body;
 
     // Validate required fields
-    if (!roomNumber || !date || !time || !duration || negativeMarking === undefined || !questions || !correctAnswers) {
+    if (!roomNumber || !date || !time || !duration || negativeMarking === undefined || !questions) {
       return res.status(400).json({ 
         success: false, 
         error: "All fields are required!" 
@@ -121,18 +121,33 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
         });
       }
 
-      if (!question.correctAnswer) {
-        return res.status(400).json({
-          success: false,
-          error: `Question ${i + 1}: Correct answer is required`
-        });
-      }
+      if (question.type === 'objective') {
+        if (!Array.isArray(question.options) || question.options.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: `Question ${i + 1}: Options are required for objective questions`
+          });
+        }
 
-      if (question.type === 'objective' && (!Array.isArray(question.options) || question.options.length === 0)) {
-        return res.status(400).json({
-          success: false,
-          error: `Question ${i + 1}: Options are required for objective questions`
-        });
+        if (!question.correctAnswer) {
+          return res.status(400).json({
+            success: false,
+            error: `Question ${i + 1}: Correct answer is required for objective questions`
+          });
+        }
+
+        // Validate that correct answer exists in options
+        if (!question.options.includes(question.correctAnswer)) {
+          return res.status(400).json({
+            success: false,
+            error: `Question ${i + 1}: Correct answer must be one of the provided options`
+          });
+        }
+      } else {
+        // For subjective questions, use the text as correct answer if not provided
+        if (!question.correctAnswer) {
+          question.correctAnswer = question.text;
+        }
       }
     }
 
@@ -155,7 +170,10 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
       duration: Number(duration),
       negativeMarking: Number(negativeMarking),
       questions,
-      correctAnswers,
+      correctAnswers: questions.reduce((acc, q, index) => {
+        acc[index] = q.correctAnswer;
+        return acc;
+      }, {})
     });
 
     await newTest.save();
