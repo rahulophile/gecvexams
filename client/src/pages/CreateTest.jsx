@@ -287,36 +287,52 @@ export default function CreateTest() {
       return;
     }
 
-    const response = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(testData)
-    });
+    try {
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/create-test", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(testData)
+      });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to create test");
+      const data = await response.json();
+      if (!response.ok) {
+        setAlert({
+          show: true,
+          type: "error",
+          title: "Error",
+          message: data.error || "Failed to create test"
+        });
+        return;
+      }
+
+      setAlert({
+        show: true,
+        type: "success",
+        title: "Success",
+        message: "Test created successfully!"
+      });
+
+      // Reset form
+      setRoomNumber("");
+      setDate("");
+      setTime("");
+      setDuration("");
+      setNegativeMarking("");
+      setMarksPerCorrect("1");
+      setQuestions([]);
+      setCorrectAnswers({});
+    } catch (error) {
+      console.error("Error creating test:", error);
+      setAlert({
+        show: true,
+        type: "error",
+        title: "Error",
+        message: error.message || "Failed to create test"
+      });
     }
-
-    setAlert({
-      show: true,
-      type: "success",
-      title: "Success",
-      message: "Test created successfully!"
-    });
-
-    // Reset form
-    setRoomNumber("");
-    setDate("");
-    setTime("");
-    setDuration("");
-    setNegativeMarking("");
-    setMarksPerCorrect("1");
-    setQuestions([]);
-    setCorrectAnswers({});
   };
 
   const handleViewResponses = () => {
