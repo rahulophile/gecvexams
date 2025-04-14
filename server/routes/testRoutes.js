@@ -95,6 +95,15 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
       });
     }
 
+    // Validate negative marking
+    const parsedNegativeMarking = parseFloat(negativeMarking);
+    if (isNaN(parsedNegativeMarking) || parsedNegativeMarking < 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Negative marking must be a non-negative number"
+      });
+    }
+
     // Validate questions
     if (!Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({
@@ -168,7 +177,7 @@ router.post("/create-test", verifyAdmin, async (req, res) => {
       date: localDateTime.format("YYYY-MM-DD"),
       time: localDateTime.format("HH:mm"),
       duration: Number(duration),
-      negativeMarking: Number(negativeMarking),
+      negativeMarking: parsedNegativeMarking,
       questions,
       correctAnswers: questions.reduce((acc, q, index) => {
         acc[index] = q.correctAnswer;
@@ -459,15 +468,20 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
 
     // Map submissions to response format
     const responses = (test.submissions || []).map(submission => {
-      let objectiveScore = 0;
+      let correctAnswers = 0;
+      let incorrectAnswers = 0;
       let subjectiveAnswers = [];
       
       // Process each answer
       test.questions.forEach((question, index) => {
         if (question.type === 'objective') {
-          // Give 0 score for unanswered questions
-          if (submission.answers && submission.answers[index] === test.correctAnswers[index]) {
-            objectiveScore++;
+          // Handle objective questions
+          if (submission.answers && submission.answers[index] !== undefined) {
+            if (submission.answers[index] === test.correctAnswers[index]) {
+              correctAnswers++;
+            } else {
+              incorrectAnswers++;
+            }
           }
         } else if (question.type === 'subjective') {
           // Handle subjective answers
@@ -480,31 +494,36 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
         }
       });
 
+      // Calculate final score with negative marking
+      const finalScore = correctAnswers - (test.negativeMarking * incorrectAnswers);
+      // Ensure score doesn't go below 0
+      const adjustedScore = Math.max(0, finalScore);
+
       return {
         studentName: submission.studentName || 'N/A',
         regNo: submission.regNo || 'N/A',
-        objectiveScore,
-        totalObjective: test.questions.filter(q => q.type === 'objective').length,
+        correctAnswers,
+        incorrectAnswers,
+        finalScore: adjustedScore,
+        totalQuestions: test.questions.filter(q => q.type === 'objective').length,
+        negativeMarking: test.negativeMarking,
         ...(hasSubjective && {
           subjectiveAnswers
         })
       };
     });
 
-    // Sort responses by objective score
-    const sortedResponses = responses.sort((a, b) => b.objectiveScore - a.objectiveScore);
+    // Sort responses by final score
+    const sortedResponses = responses.sort((a, b) => b.finalScore - a.finalScore);
 
     res.json({ 
       success: true, 
       responses: sortedResponses,
-      testInfo: {
+      testDetails: {
+        roomNumber: test.roomNumber,
         date: test.date,
         time: test.time,
-        duration: test.duration,
-        totalQuestions: test.questions.length,
-        objectiveQuestions: test.questions.filter(q => q.type === 'objective').length,
-        subjectiveQuestions: test.questions.filter(q => q.type === 'subjective').length,
-        hasSubjective
+        negativeMarking: test.negativeMarking
       }
     });
 
@@ -512,7 +531,7 @@ router.get("/get-test-responses/:roomNumber", verifyAdminToken, async (req, res)
     console.error("Error fetching test responses:", error);
     res.status(500).json({ 
       success: false, 
-      message: "Error fetching responses. Please try again." 
+      message: "Internal server error" 
     });
   }
 });
