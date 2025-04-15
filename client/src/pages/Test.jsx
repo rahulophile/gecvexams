@@ -134,6 +134,40 @@ export default function Test() {
     });
   };
 
+  const calculateScore = () => {
+    if (!testData) return { final: 0, correct: 0, incorrect: 0 };
+
+    let correct = 0;
+    let incorrect = 0;
+    const totalQuestions = testData.questions.length;
+
+    testData.questions.forEach((question, index) => {
+      if (question.type === 'objective') {
+        const selectedAnswer = selectedAnswers[index];
+        if (selectedAnswer === question.correctAnswer) {
+          correct++;
+        } else if (selectedAnswer) {
+          incorrect++;
+        }
+      }
+    });
+
+    const marksPerCorrect = testData.marksPerCorrect || 1;
+    const negativeMarking = testData.negativeMarking || 0.25;
+    
+    const finalScore = Math.max(
+      0,
+      (correct * marksPerCorrect) - (incorrect * negativeMarking)
+    );
+
+    return {
+      final: finalScore,
+      correct,
+      incorrect,
+      total: totalQuestions
+    };
+  };
+
   const handleSubmit = async () => {
     if (!testStarted) return;
 
@@ -150,7 +184,10 @@ export default function Test() {
         regNo: userDetails.regNo,
         name: userDetails.name,
         branch: userDetails.branch,
-        answers: answers,
+        answers: {
+          ...selectedAnswers,
+          ...subjectiveAnswers
+        },
         score: score
       };
 
@@ -408,11 +445,9 @@ export default function Test() {
       }
 
       // Handle ESC key
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && testStarted) {
         e.preventDefault();
-        e.stopPropagation();
         setShowSubmitConfirm(true);
-        return false;
       }
 
       // Block Alt+Tab and Cmd+Tab
