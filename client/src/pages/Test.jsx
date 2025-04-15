@@ -85,6 +85,13 @@ export default function Test() {
     fetchTest();
   }, [roomNumber, navigate, isVerified, verifiedRoom]);
 
+  useEffect(() => {
+    if (testData && !testStarted) {
+      // Initialize timer with test duration in seconds
+      setTimeLeft(testData.duration * 60);
+    }
+  }, [testData, testStarted]);
+
   const updateTimer = useCallback(() => {
     setTimeLeft(prev => Math.max(prev - 1, 0));
   }, []);
@@ -127,84 +134,66 @@ export default function Test() {
     });
   };
 
-  const handleSubmit = () => {
-    setShowSubmitConfirm(true);
-  };
+  const handleSubmit = async () => {
+    if (!testStarted) return;
 
-  const handleSubmitConfirmed = async (confirmed) => {
-    if (confirmed) {
+    try {
       setIsSubmitting(true);
-      try {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-          setAlert({
-            show: true,
-            type: 'error',
-            title: 'Authentication Error',
-            message: 'Please login again'
-          });
-          navigate('/');
-          return;
-        }
+      const token = localStorage.getItem('token');
+      
+      // Calculate scores
+      const score = calculateScore();
+      
+      // Prepare submission data
+      const submissionData = {
+        roomNumber,
+        regNo: userDetails.regNo,
+        name: userDetails.name,
+        branch: userDetails.branch,
+        answers: answers,
+        score: score
+      };
 
-        const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            roomNumber,
-            userDetails,
-            answers: {
-              ...selectedAnswers,
-              ...subjectiveAnswers
-            }
-          })
-        });
+      // Submit test
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(submissionData)
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Network response was not ok');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          // Exit fullscreen only after successful submission
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else if (document.webkitFullscreenElement) {
-            await document.webkitExitFullscreen();
-          } else if (document.mozFullScreenElement) {
-            await document.mozCancelFullScreen();
-          } else if (document.msFullscreenElement) {
-            await document.msExitFullscreen();
-          }
-
-          setSubmissionStatus('success');
-          setShowSubmissionPopup(true);
-          // Navigate to home after 9 seconds
-          setTimeout(() => {
-            navigate('/');
-          }, 9000);
-        } else {
-          throw new Error(data.message || 'Failed to submit test');
-        }
-      } catch (error) {
-        console.error("Error submitting test:", error);
-        setAlert({
-          show: true,
-          type: 'error',
-          title: 'Submission Error',
-          message: error.message || 'Failed to submit test. Please try again.'
-        });
-        setSubmissionStatus('error');
-        setShowSubmissionPopup(true);
-      } finally {
-        setIsSubmitting(false);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to submit test');
       }
+
+      // Show success message
+      setAlert({
+        show: true,
+        type: 'success',
+        title: 'Test Submitted',
+        message: 'Your test has been submitted successfully.'
+      });
+
+      // Wait for 2 seconds before navigation
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+
+    } catch (error) {
+      console.error("Error submitting test:", error);
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Submission Error',
+        message: error.message || 'Failed to submit test. Please try again.'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    setShowSubmitConfirm(false);
   };
 
   const enterFullscreen = () => {
