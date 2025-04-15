@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 
-const TestContext = createContext();
+const TestContext = createContext({
+  isVerified: false,
+  verifiedRoom: null,
+  setVerification: () => {}
+});
 
 export function TestProvider({ children }) {
   const [isVerified, setIsVerified] = useState(false);
@@ -11,12 +15,14 @@ export function TestProvider({ children }) {
     setVerifiedRoom(room);
   }, []);
 
+  const value = {
+    isVerified,
+    verifiedRoom,
+    setVerification
+  };
+
   return (
-    <TestContext.Provider value={{ 
-      isVerified, 
-      verifiedRoom, 
-      setVerification 
-    }}>
+    <TestContext.Provider value={value}>
       {children}
     </TestContext.Provider>
   );
