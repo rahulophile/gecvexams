@@ -171,6 +171,17 @@ export default function Test() {
   const handleSubmit = async () => {
     if (!testStarted) return;
 
+    // Validate user details
+    if (!userDetails || !userDetails.name || !userDetails.regNo || !userDetails.branch) {
+      setAlert({
+        show: true,
+        type: 'error',
+        title: 'Missing Details',
+        message: 'Please enter all your details before submitting the test.'
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem('token');
@@ -300,6 +311,18 @@ export default function Test() {
 
   const handleExitConfirm = async (confirmed) => {
     if (confirmed) {
+      // Validate user details
+      if (!userDetails || !userDetails.name || !userDetails.regNo || !userDetails.branch) {
+        setAlert({
+          show: true,
+          type: 'error',
+          title: 'Missing Details',
+          message: 'Please enter all your details before submitting the test.'
+        });
+        setShowExitConfirm(false);
+        return;
+      }
+
       try {
         const score = calculateScore();
         const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
@@ -309,7 +332,9 @@ export default function Test() {
           },
           body: JSON.stringify({
             roomNumber,
-            userDetails,
+            regNo: userDetails.regNo,
+            name: userDetails.name,
+            branch: userDetails.branch,
             answers: {
               ...selectedAnswers,
               ...subjectiveAnswers
