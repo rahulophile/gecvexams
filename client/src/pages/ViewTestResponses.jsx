@@ -147,68 +147,123 @@ const ViewTestResponses = () => {
       responses.forEach((response, studentIndex) => {
         const doc = new jsPDF();
         
-        // Add developer tag at the top
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text('Design and Developed by Rahul Raj', 105, 10, { align: 'center' });
+        // Add developer tag at the top with styling
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 139); // Dark blue color
+        doc.setFont(undefined, 'bold');
+        doc.text('Design and Developed by Rahul Raj', 105, 15, { align: 'center' });
         
-        // Add header
-        doc.setFontSize(20);
+        // Add header with styling
+        doc.setFontSize(24);
         doc.setTextColor(0, 0, 0);
-        doc.text('GECV Examination System', 105, 25, { align: 'center' });
+        doc.setFont(undefined, 'bold');
+        doc.text('GECV Examination System', 105, 30, { align: 'center' });
         
-        // Add test information with border
-        doc.setDrawColor(0);
+        // Add test information with border and styling
+        doc.setDrawColor(0, 0, 139); // Dark blue border
         doc.setLineWidth(0.5);
-        doc.rect(10, 35, 190, 40);
-        doc.setFontSize(14);
-        doc.text('Test Details', 14, 45);
+        doc.rect(10, 40, 190, 30);
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 139);
+        doc.text('Test Details', 14, 50);
         doc.setFontSize(12);
-        doc.text(`Room Number: ${roomNumber}`, 14, 55);
-        doc.text(`Date: ${testInfo.date}`, 14, 65);
-        doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 75);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Room Number: ${roomNumber}`, 14, 60);
+        doc.text(`Date: ${testInfo.date}`, 14, 70);
+        doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 80);
         
-        // Add student information with border
-        doc.rect(10, 85, 190, 40);
-        doc.setFontSize(14);
-        doc.text('Student Information', 14, 95);
-        doc.setFontSize(12);
-        doc.text(`Name: ${response.studentName}`, 14, 105);
-        doc.text(`Registration: ${response.regNo}`, 14, 115);
-        doc.text(`Branch: ${response.branch}`, 14, 125);
+        // Add student section with border and styling
+        doc.setDrawColor(0, 0, 139);
+        doc.rect(10, 90, 190, 100);
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 139);
+        doc.text('Student Information', 14, 100);
         
-        // Add objective score summary with border
-        doc.rect(10, 135, 190, 70);
-        doc.setFontSize(14);
-        doc.text('Objective Score Summary', 14, 145);
+        // Student details with styling
         doc.setFontSize(12);
-        doc.text(`Final Score: ${response.score.final}`, 14, 155);
-        doc.text(`Correct Answers: ${response.score.correct}`, 14, 165);
-        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, 175);
-        doc.text(`Marks Per Correct: ${response.score.marksPerCorrect}`, 14, 185);
-        doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, 195);
-        doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, 205);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('Name:', 14, 110);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.studentName, 40, 110);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Registration:', 14, 120);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.regNo, 40, 120);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Branch:', 14, 130);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.branch, 40, 130);
+        
+        // Add objective score summary with border and styling
+        doc.setDrawColor(0, 0, 139);
+        doc.rect(10, 140, 190, 80);
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 139);
+        doc.text('Objective Score Summary', 14, 150);
+        
+        // Score details with styling
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont(undefined, 'bold');
+        doc.text('Final Score:', 14, 160);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.score.final.toString(), 40, 160);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Correct Answers:', 14, 170);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.score.correct.toString(), 40, 170);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Incorrect Answers:', 14, 180);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.score.incorrect.toString(), 40, 180);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Marks Per Correct:', 14, 190);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.score.marksPerCorrect.toString(), 40, 190);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Marks Awarded:', 14, 200);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.score.marksForCorrect.toString(), 40, 200);
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Marks Deducted:', 14, 210);
+        doc.setFont(undefined, 'normal');
+        doc.text(response.score.marksDeducted.toString(), 40, 210);
         
         // Add subjective answers if they exist
-        let yPosition = 225;
+        let yPosition = 230;
         if (hasSubjective) {
-          // Add subjective answers section with border
+          // Add subjective answers section with border and styling
+          doc.setDrawColor(0, 0, 139);
           doc.rect(10, yPosition - 10, 190, 60);
-          doc.setFontSize(14);
+          doc.setFontSize(16);
+          doc.setTextColor(0, 0, 139);
           doc.text('Subjective Answers', 14, yPosition);
           yPosition += 15;
           
           doc.setFontSize(12);
+          doc.setTextColor(0, 0, 0);
           testInfo.questions.forEach((question, index) => {
             if (question.type === 'subjective') {
               if (yPosition > 250) {
                 doc.addPage();
                 yPosition = 20;
                 // Add border for new page
+                doc.setDrawColor(0, 0, 139);
                 doc.rect(10, yPosition - 10, 190, 60);
               }
               
-              doc.text(`Q${index + 1}: ${response.answers[index] || 'No answer provided'}`, 14, yPosition);
+              doc.setFont(undefined, 'bold');
+              doc.text(`Q${index + 1}:`, 14, yPosition);
+              doc.setFont(undefined, 'normal');
+              doc.text(response.answers[index] || 'No answer provided', 30, yPosition);
               yPosition += 15;
             }
           });
@@ -218,8 +273,8 @@ const ViewTestResponses = () => {
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
           doc.setPage(i);
-          doc.setFontSize(8);
-          doc.setTextColor(100);
+          doc.setFontSize(10);
+          doc.setTextColor(0, 0, 139);
           doc.text('GECV Examination System', 105, 285, { align: 'center' });
         }
         
