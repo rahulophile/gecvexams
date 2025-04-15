@@ -133,6 +133,7 @@ export default function Test() {
 
   const handleSubmitConfirmed = async (confirmed) => {
     if (confirmed) {
+      setIsSubmitting(true);
       try {
         const token = localStorage.getItem('adminToken');
         if (!token) {
@@ -186,6 +187,8 @@ export default function Test() {
           setTimeout(() => {
             navigate('/');
           }, 9000);
+        } else {
+          throw new Error(data.message || 'Failed to submit test');
         }
       } catch (error) {
         console.error("Error submitting test:", error);
@@ -197,6 +200,8 @@ export default function Test() {
         });
         setSubmissionStatus('error');
         setShowSubmissionPopup(true);
+      } finally {
+        setIsSubmitting(false);
       }
     }
     setShowSubmitConfirm(false);
