@@ -9,7 +9,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 export default function Test() {
-  const { isVerified, verifiedRoom } = useTest();
+  const { isVerified, verifiedRoom, isInitialized } = useTest();
   const { roomNumber } = useParams();
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState({ name: "", branch: "", regNo: "" });
@@ -37,14 +37,9 @@ export default function Test() {
   const [showViolationWarning, setShowViolationWarning] = useState(false);
   const [violationCountdown, setViolationCountdown] = useState(5);
   const testContainerRef = useRef(null);
-  const [isContextReady, setIsContextReady] = useState(false);
 
   useEffect(() => {
-    setIsContextReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isContextReady) return;
+    if (!isInitialized) return;
 
     if (!isVerified || verifiedRoom !== roomNumber) {
       setAlert({
@@ -89,7 +84,7 @@ export default function Test() {
     };
 
     fetchTest();
-  }, [roomNumber, navigate, isVerified, verifiedRoom, isContextReady]);
+  }, [roomNumber, navigate, isVerified, verifiedRoom, isInitialized]);
 
   useEffect(() => {
     if (testData && !testStarted) {
