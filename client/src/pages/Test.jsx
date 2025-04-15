@@ -13,7 +13,12 @@ export default function Test() {
   const { roomNumber } = useParams();
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState({ name: "", branch: "", regNo: "" });
-  const [testData, setTestData] = useState(null);
+  const [testData, setTestData] = useState({
+    questions: [],
+    duration: 0,
+    title: "",
+    instructions: []
+  });
   const [answers, setAnswers] = useState({});
   const [review, setReview] = useState({});
   const [timeLeft, setTimeLeft] = useState(null);
@@ -53,8 +58,8 @@ export default function Test() {
     }
 
     const fetchTest = async () => {
-      setIsLoading(true);
       try {
+        setIsLoading(true);
         const token = localStorage.getItem('adminToken');
         const res = await fetch(`https://exam-server-gecv.onrender.com/api/get-test/${roomNumber}`, {
           method: "GET",
@@ -71,6 +76,7 @@ export default function Test() {
         const data = await res.json();
         if (data.success) {
           setTestData(data.test);
+          setTimeLeft(data.test.duration * 60); // Convert minutes to seconds
         } else {
           setAlert({ show: true, type: 'error', title: 'Error', message: data.message });
         }
@@ -835,277 +841,4 @@ export default function Test() {
                             return (
                               <div 
                                 key={`question-${currentQuestionIndex}-option-${optionIndex}`}
-                                className={`p-3 rounded-lg border cursor-pointer transition-colors break-words whitespace-pre-wrap ${
-                                  isSelected ? 'bg-blue-100 border-blue-500' : 'hover:bg-gray-50 border-gray-200'
-                                }`}
-                                onClick={() => handleAnswerChange(currentQuestionIndex, option)}
-                              >
-                                <div className="flex items-center">
-                                  <div className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
-                                    isSelected ? 'border-blue-500' : 'border-gray-400'
-                                  }`}>
-                                    {isSelected && (
-                                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                    )}
-                                  </div>
-                                  <span className="text-sm sm:text-base text-gray-700">{option}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {testData.questions[currentQuestionIndex].type === 'subjective' && (
-                        <div className="mb-6">
-                          
-                          {testData.questions[currentQuestionIndex].image && (
-                            <div className="my-4 w-full flex justify-center">
-                              <div className="relative w-full max-w-2xl mx-auto">
-                                <img 
-                                  src={testData.questions[currentQuestionIndex].image} 
-                                  alt="Question image" 
-                                  className="w-full h-auto object-contain rounded-lg border border-gray-700"
-                                  style={{ 
-                                    maxHeight: '400px',
-                                    width: '100%',
-                                    height: 'auto',
-                                    display: 'block'
-                                  }}
-                                  onError={(e) => {
-                                    console.error('Error loading image:', e);
-                                    e.target.style.display = 'none';
-                                    const errorDiv = document.createElement('div');
-                                    errorDiv.className = 'text-red-500 text-center p-4 bg-red-100 rounded-lg';
-                                    errorDiv.textContent = 'Failed to load image. Please try refreshing the page.';
-                                    e.target.parentNode.appendChild(errorDiv);
-                                    
-                                    // Log the image URL for debugging
-                                    console.log('Failed image URL:', testData.questions[currentQuestionIndex].image);
-                                  }}
-                                  loading="lazy"
-                                />
-                              </div>
-                            </div>
-                          )}
-                          <textarea
-                            value={subjectiveAnswers[currentQuestionIndex] || ''}
-                            onChange={(e) => handleAnswerChange(currentQuestionIndex, e.target.value)}
-                            onFocus={() => setIsTextareaFocused(true)}
-                            onBlur={() => setIsTextareaFocused(false)}
-                            placeholder="Enter your answer here"
-                            className="w-full p-3 border rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            style={{ minHeight: '100px', maxHeight: '200px' }}
-                          />
-                        </div>
-                      )}
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          className={`px-3 sm:px-4 py-2 rounded transition-colors ${
-                            review[currentQuestionIndex] 
-                              ? "bg-yellow-500 hover:bg-yellow-600" 
-                              : "bg-yellow-400 hover:bg-yellow-500"
-                          } text-white text-sm sm:text-base`}
-                          onClick={() => handleMarkForReview(currentQuestionIndex)}
-                        >
-                          {review[currentQuestionIndex] ? "Unmark Review" : "Mark for Review"}
-                        </button>
-                        <button
-                          className="bg-gray-500 text-white px-3 sm:px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm sm:text-base"
-                          onClick={() => handleClearResponse(currentQuestionIndex)}
-                        >
-                          Clear Response
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Navigation buttons for previous and next questions */}
-                  <div className="flex justify-between items-center mt-6">
-                    <button
-                      onClick={handlePreviousQuestion}
-                      className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white transition-all duration-200 transform hover:scale-105"
-                      disabled={currentQuestionIndex === 0}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      <span className="hidden sm:inline">Previous Question</span>
-                      <span className="sm:hidden">Previous</span>
-                    </button>
-
-                    <button
-                      onClick={handleNextQuestion}
-                      className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white transition-all duration-200 transform hover:scale-105"
-                      disabled={currentQuestionIndex === testData.questions.length - 1}
-                    >
-                      <span className="hidden sm:inline">Next Question</span>
-                      <span className="sm:hidden">Next</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M7.293 5.293a1 1 0 010 1.414L10.586 10 7.293 13.293a1 1 0 011.414 1.414l4-4a1 1 0 000-1.414l-4-4a1 1 0 00-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Question Navigator with better styling */}
-                <div className="md:col-span-1">
-                  <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 sticky top-4">
-                    <h3 className="text-xl font-semibold mb-4 text-center text-gray-200">
-                      Questions Overview
-                    </h3>
-                    <div className="grid grid-cols-4 gap-2 mb-4">
-                      {testData.questions.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentQuestionIndex(index)}
-                          className={`p-3 rounded-lg transition-all duration-200 ${
-                            currentQuestionIndex === index
-                              ? 'bg-blue-500 text-white'
-                              : selectedAnswers[index]
-                              ? 'bg-green-500 text-white'
-                              : review[index]
-                              ? 'bg-yellow-500 text-white'
-                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                          }`}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Legend */}
-                    <div className="space-y-2 text-sm text-gray-300">
-                      <div className="flex items-center space-x-2">
-                        <FaCheckCircle className="text-green-500" />
-                        <span>Answered</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <FaExclamationCircle className="text-yellow-500" />
-                        <span>Marked for Review</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <FaTimesCircle className="text-gray-500" />
-                        <span>Not Attempted</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {showExitConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Exit Confirmation</h2>
-            <p className="text-gray-600 mb-6">
-              Exiting fullscreen will submit your test. Are you sure you want to exit?
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => handleExitConfirm(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleExitConfirm(true)}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-              >
-                Exit & Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showSubmitConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Submit Test</h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to submit your test? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowSubmitConfirm(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-              >
-                Submit Test
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      <CustomAlert
-        isOpen={alert.show}
-        onClose={() => setAlert({ show: false, type: '', title: '', message: '' })}
-        type={alert.type}
-        title={alert.title}
-        message={alert.message}
-      />
-
-      {/* Entry Popup - Show after student details */}
-      {showEntryPopup && showTestInstructions()}
-
-      {/* Submission Popup */}
-      {showSubmissionPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="text-center">
-              {submissionStatus === 'success' ? (
-                <>
-                  <div className="text-green-500 text-5xl mb-4">✓</div>
-                  <h2 className="text-xl font-bold text-gray-800 mb-2">Test Submitted Successfully!</h2>
-                  <p className="text-gray-600 mb-4">Redirecting to home in {countdown} seconds...</p>
-                </>
-              ) : (
-                <>
-                  <div className="text-red-500 text-5xl mb-4">✕</div>
-                  <h2 className="text-xl font-bold text-gray-800 mb-2">Submission Failed</h2>
-                  <p className="text-gray-600 mb-4">Please try again or contact support</p>
-                </>
-              )}
-              <button
-                onClick={() => navigate('/')}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Back to Home
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add violation warning modal */}
-      {showViolationWarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg max-w-md text-center">
-            <h2 className="text-xl font-bold mb-4 text-red-500">Inappropriate Behavior Detected!</h2>
-            <p className="mb-4">Your test will be automatically submitted in {violationCountdown} seconds.</p>
-            <div className="w-full bg-gray-700 rounded-full h-2.5 mb-4">
-              <div 
-                className="bg-red-500 h-2.5 rounded-full transition-all duration-1000" 
-                style={{ width: `${(violationCountdown / 5) * 100}%` }}
-              ></div>
-            </div>
-            <p className="text-sm text-gray-400">Please do not switch tabs or windows during the test.</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-
-
-
-
+                                className={`
