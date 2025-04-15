@@ -147,41 +147,53 @@ const ViewTestResponses = () => {
       responses.forEach((response, studentIndex) => {
         const doc = new jsPDF();
         
+        // Add developer tag at the top
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text('Design and Developed by Rahul Raj', 105, 10, { align: 'center' });
+        
         // Add header
         doc.setFontSize(20);
         doc.setTextColor(0, 0, 0);
-        doc.text('GECV Examination System', 105, 20, { align: 'center' });
+        doc.text('GECV Examination System', 105, 25, { align: 'center' });
         
-        // Add test information
+        // Add test information with border
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.5);
+        doc.rect(10, 35, 190, 40);
         doc.setFontSize(14);
-        doc.text('Test Details', 14, 35);
+        doc.text('Test Details', 14, 45);
         doc.setFontSize(12);
-        doc.text(`Room Number: ${roomNumber}`, 14, 45);
-        doc.text(`Date: ${testInfo.date}`, 14, 55);
-        doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 65);
+        doc.text(`Room Number: ${roomNumber}`, 14, 55);
+        doc.text(`Date: ${testInfo.date}`, 14, 65);
+        doc.text(`Time: ${formatTo12Hour(testInfo.time)}`, 14, 75);
         
-        // Add student information
+        // Add student information with border
+        doc.rect(10, 85, 190, 40);
         doc.setFontSize(14);
-        doc.text('Student Information', 14, 85);
+        doc.text('Student Information', 14, 95);
         doc.setFontSize(12);
-        doc.text(`Name: ${response.studentName}`, 14, 95);
-        doc.text(`Registration: ${response.regNo}`, 14, 105);
-        doc.text(`Branch: ${response.branch}`, 14, 115);
+        doc.text(`Name: ${response.studentName}`, 14, 105);
+        doc.text(`Registration: ${response.regNo}`, 14, 115);
+        doc.text(`Branch: ${response.branch}`, 14, 125);
         
-        // Add objective score summary
+        // Add objective score summary with border
+        doc.rect(10, 135, 190, 70);
         doc.setFontSize(14);
-        doc.text('Objective Score Summary', 14, 135);
+        doc.text('Objective Score Summary', 14, 145);
         doc.setFontSize(12);
-        doc.text(`Final Score: ${response.score.final}`, 14, 145);
-        doc.text(`Correct Answers: ${response.score.correct}`, 14, 155);
-        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, 165);
-        doc.text(`Marks Per Correct: ${response.score.marksPerCorrect}`, 14, 175);
-        doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, 185);
-        doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, 195);
+        doc.text(`Final Score: ${response.score.final}`, 14, 155);
+        doc.text(`Correct Answers: ${response.score.correct}`, 14, 165);
+        doc.text(`Incorrect Answers: ${response.score.incorrect}`, 14, 175);
+        doc.text(`Marks Per Correct: ${response.score.marksPerCorrect}`, 14, 185);
+        doc.text(`Marks Awarded: ${response.score.marksForCorrect}`, 14, 195);
+        doc.text(`Marks Deducted: ${response.score.marksDeducted}`, 14, 205);
         
         // Add subjective answers if they exist
-        let yPosition = 215;
+        let yPosition = 225;
         if (hasSubjective) {
+          // Add subjective answers section with border
+          doc.rect(10, yPosition - 10, 190, 60);
           doc.setFontSize(14);
           doc.text('Subjective Answers', 14, yPosition);
           yPosition += 15;
@@ -192,6 +204,8 @@ const ViewTestResponses = () => {
               if (yPosition > 250) {
                 doc.addPage();
                 yPosition = 20;
+                // Add border for new page
+                doc.rect(10, yPosition - 10, 190, 60);
               }
               
               doc.text(`Q${index + 1}: ${response.answers[index] || 'No answer provided'}`, 14, yPosition);
@@ -206,7 +220,7 @@ const ViewTestResponses = () => {
           doc.setPage(i);
           doc.setFontSize(8);
           doc.setTextColor(100);
-          doc.text('GECV Examination System - Design and Developed by Rahul Raj', 105, 285, { align: 'center' });
+          doc.text('GECV Examination System', 105, 285, { align: 'center' });
         }
         
         // Save the PDF
