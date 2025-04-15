@@ -38,6 +38,40 @@ export default function Test() {
   const [violationCountdown, setViolationCountdown] = useState(5);
   const testContainerRef = useRef(null);
 
+  const calculateScore = () => {
+    if (!testData) return { final: 0, correct: 0, incorrect: 0 };
+
+    let correct = 0;
+    let incorrect = 0;
+    const totalQuestions = testData.questions.length;
+
+    testData.questions.forEach((question, index) => {
+      if (question.type === 'objective') {
+        const selectedAnswer = selectedAnswers[index];
+        if (selectedAnswer === question.correctAnswer) {
+          correct++;
+        } else if (selectedAnswer) {
+          incorrect++;
+        }
+      }
+    });
+
+    const marksPerCorrect = testData.marksPerCorrect || 1;
+    const negativeMarking = testData.negativeMarking || 0.25;
+    
+    const finalScore = Math.max(
+      0,
+      (correct * marksPerCorrect) - (incorrect * negativeMarking)
+    );
+
+    return {
+      final: finalScore,
+      correct,
+      incorrect,
+      total: totalQuestions
+    };
+  };
+
   useEffect(() => {
     // If not verified or room numbers don't match, redirect to home
     if (!isVerified || verifiedRoom !== roomNumber) {
@@ -106,7 +140,7 @@ export default function Test() {
 
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, [testStarted, timeLeft, updateTimer]);
+  }, [testStarted, timeLeft, updateTimer, handleSubmit]);
 
   const handleAnswerChange = (questionIndex, selectedOption) => {
     if (testData.questions[questionIndex].type === 'subjective') {
@@ -134,41 +168,7 @@ export default function Test() {
     });
   };
 
-  const calculateScore = () => {
-    if (!testData) return { final: 0, correct: 0, incorrect: 0 };
-
-    let correct = 0;
-    let incorrect = 0;
-    const totalQuestions = testData.questions.length;
-
-    testData.questions.forEach((question, index) => {
-      if (question.type === 'objective') {
-        const selectedAnswer = selectedAnswers[index];
-        if (selectedAnswer === question.correctAnswer) {
-          correct++;
-        } else if (selectedAnswer) {
-          incorrect++;
-        }
-      }
-    });
-
-    const marksPerCorrect = testData.marksPerCorrect || 1;
-    const negativeMarking = testData.negativeMarking || 0.25;
-    
-    const finalScore = Math.max(
-      0,
-      (correct * marksPerCorrect) - (incorrect * negativeMarking)
-    );
-
-    return {
-      final: finalScore,
-      correct,
-      incorrect,
-      total: totalQuestions
-    };
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!testStarted) return;
 
     // Validate user details
@@ -242,7 +242,7 @@ export default function Test() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [testStarted, userDetails, roomNumber, selectedAnswers, subjectiveAnswers, navigate]);
 
   const enterFullscreen = () => {
     if (testContainerRef.current) {
