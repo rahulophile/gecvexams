@@ -37,42 +37,15 @@ export default function Test() {
   const [showViolationWarning, setShowViolationWarning] = useState(false);
   const [violationCountdown, setViolationCountdown] = useState(5);
   const testContainerRef = useRef(null);
-
-  const calculateScore = () => {
-    if (!testData) return { final: 0, correct: 0, incorrect: 0 };
-
-    let correct = 0;
-    let incorrect = 0;
-    const totalQuestions = testData.questions.length;
-
-    testData.questions.forEach((question, index) => {
-      if (question.type === 'objective') {
-        const selectedAnswer = selectedAnswers[index];
-        if (selectedAnswer === question.correctAnswer) {
-          correct++;
-        } else if (selectedAnswer) {
-          incorrect++;
-        }
-      }
-    });
-
-    const marksPerCorrect = testData.marksPerCorrect || 1;
-    const negativeMarking = testData.negativeMarking || 0.25;
-    
-    const finalScore = Math.max(
-      0,
-      (correct * marksPerCorrect) - (incorrect * negativeMarking)
-    );
-
-    return {
-      final: finalScore,
-      correct,
-      incorrect,
-      total: totalQuestions
-    };
-  };
+  const [isContextReady, setIsContextReady] = useState(false);
 
   useEffect(() => {
+    setIsContextReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isContextReady) return;
+
     if (!isVerified || verifiedRoom !== roomNumber) {
       setAlert({
         show: true,
@@ -116,7 +89,7 @@ export default function Test() {
     };
 
     fetchTest();
-  }, [roomNumber, navigate, isVerified, verifiedRoom]);
+  }, [roomNumber, navigate, isVerified, verifiedRoom, isContextReady]);
 
   useEffect(() => {
     if (testData && !testStarted) {

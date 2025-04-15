@@ -1,10 +1,6 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
-const TestContext = createContext({
-  isVerified: false,
-  verifiedRoom: null,
-  setVerification: () => {}
-});
+const TestContext = createContext();
 
 export function TestProvider({ children }) {
   const [isVerified, setIsVerified] = useState(false);
@@ -15,11 +11,11 @@ export function TestProvider({ children }) {
     setVerifiedRoom(room);
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     isVerified,
     verifiedRoom,
     setVerification
-  };
+  }), [isVerified, verifiedRoom, setVerification]);
 
   return (
     <TestContext.Provider value={value}>
