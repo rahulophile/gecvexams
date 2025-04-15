@@ -301,6 +301,7 @@ export default function Test() {
   const handleExitConfirm = async (confirmed) => {
     if (confirmed) {
       try {
+        const score = calculateScore();
         const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
           method: "POST",
           headers: { 
@@ -312,7 +313,8 @@ export default function Test() {
             answers: {
               ...selectedAnswers,
               ...subjectiveAnswers
-            }
+            },
+            score: score
           })
         });
 
@@ -447,7 +449,7 @@ export default function Test() {
       // Handle ESC key
       if (e.key === 'Escape' && testStarted) {
         e.preventDefault();
-        setShowSubmitConfirm(true);
+        handleSubmit();
       }
 
       // Block Alt+Tab and Cmd+Tab
@@ -1041,7 +1043,7 @@ export default function Test() {
                 Cancel
               </button>
               <button
-                onClick={() => handleSubmitConfirmed(true)}
+                onClick={handleSubmit}
                 className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
               >
                 Submit Test
