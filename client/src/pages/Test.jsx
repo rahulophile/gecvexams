@@ -73,7 +73,6 @@ export default function Test() {
   };
 
   useEffect(() => {
-    // If not verified or room numbers don't match, redirect to home
     if (!isVerified || verifiedRoom !== roomNumber) {
       setAlert({
         show: true,
@@ -88,12 +87,12 @@ export default function Test() {
     const fetchTest = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem('adminToken'); // Get the token from local storage
+        const token = localStorage.getItem('adminToken');
         const res = await fetch(`https://exam-server-gecv.onrender.com/api/get-test/${roomNumber}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` // Include the token in the headers
+            "Authorization": `Bearer ${token}`
           }
         });
 

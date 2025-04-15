@@ -16,7 +16,7 @@ export default function Home() {
   const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { setIsVerified, setVerifiedRoom } = useTest();
+  const { setVerification } = useTest();
 
   const verifyRoom = async () => {
     if (!roomNumber.trim()) {
@@ -36,22 +36,18 @@ export default function Home() {
       
       if (data.success) {
         if (data.inGracePeriod) {
-          // Show warning about grace period
           setAlert({
             show: true,
             type: 'warning',
             title: 'Grace Period',
             message: data.message
           });
-          // Still allow them to enter
-          setIsVerified(true);
-          setVerifiedRoom(roomNumber);
+          setVerification(true, roomNumber);
           setTimeout(() => {
             navigate(`/test/${roomNumber}`);
-          }, 3000); // Give them 3 seconds to read the message
+          }, 3000);
         } else {
-          setIsVerified(true);
-          setVerifiedRoom(roomNumber);
+          setVerification(true, roomNumber);
           navigate(`/test/${roomNumber}`);
         }
       } else if (data.testEnded) {
@@ -62,7 +58,6 @@ export default function Home() {
           message: `This test was conducted on ${data.testInfo.date} at ${data.testInfo.time} for ${data.testInfo.duration} minutes. The test officially ended at ${data.testInfo.endTime}, and the grace period ended at ${data.testInfo.graceEndTime}.`
         });
       } else if (data.notStarted) {
-        // Show countdown message for future tests
         setAlert({
           show: true,
           type: 'info',
