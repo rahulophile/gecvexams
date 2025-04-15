@@ -61,8 +61,6 @@ export default function Home() {
           title: 'Test Ended',
           message: `This test was conducted on ${data.testInfo.date} at ${data.testInfo.time} for ${data.testInfo.duration} minutes. The test officially ended at ${data.testInfo.endTime}, and the grace period ended at ${data.testInfo.graceEndTime}.`
         });
-        setLoading(false);
-        return;
       } else if (data.notStarted) {
         // Show countdown message for future tests
         setAlert({
@@ -71,8 +69,6 @@ export default function Home() {
           title: 'Test Not Started',
           message: `This test will start on ${data.startTime.date} at ${data.startTime.time}. Time remaining: ${data.startTime.days} days, ${data.startTime.hours} hours, and ${data.startTime.minutes} minutes.`
         });
-        setLoading(false);
-        return;
       } else {
         setAlert({
           show: true,
