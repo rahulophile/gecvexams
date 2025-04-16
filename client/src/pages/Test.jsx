@@ -37,6 +37,7 @@ export default function Test() {
   const [showViolationWarning, setShowViolationWarning] = useState(false);
   const [violationCountdown, setViolationCountdown] = useState(5);
   const testContainerRef = useRef(null);
+  const [showTestInstructions, setShowTestInstructions] = useState(false);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -323,8 +324,7 @@ export default function Test() {
       }
 
       setShowEntryPopup(false);
-      setTestStarted(true);
-      enterFullscreen();
+      setShowTestInstructions(true);
     } catch (error) {
       console.error("Error checking registration:", error);
       setAlert({
@@ -334,6 +334,12 @@ export default function Test() {
         message: 'Failed to verify registration. Please try again.'
       });
     }
+  };
+
+  const handleBeginTest = () => {
+    setShowTestInstructions(false);
+    setTestStarted(true);
+    enterFullscreen();
   };
 
   const handleExitConfirm = async (confirmed) => {
@@ -719,7 +725,7 @@ export default function Test() {
   };
 
   // Add this new function to show test instructions
-  const showTestInstructions = () => {
+  const showInstructions = () => {
     if (!testData) return null;
     
     return (
@@ -741,8 +747,8 @@ export default function Test() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Scoring Information:</h3>
               <ul className="list-disc pl-5 space-y-2">
-                <li>Each correct answer gives you 1 mark.</li>
-                <li>Each wrong answer deducts {testData.negativeMarking} marks.</li>
+                <li>Each correct answer gives you {testData.marksPerCorrect} mark(s).</li>
+                <li>Each wrong answer deducts {testData.negativeMarking} mark(s).</li>
                 <li>Unanswered questions do not affect your score.</li>
                 <li>Your final score cannot go below 0.</li>
               </ul>
@@ -750,14 +756,10 @@ export default function Test() {
 
             <div className="mt-6 flex justify-end space-x-4">
               <button
-                onClick={() => {
-                  setShowEntryPopup(false);
-                  enterFullscreen();
-                  setTestStarted(true);
-                }}
+                onClick={handleBeginTest}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition duration-200"
               >
-                Start Test
+                Begin Test
               </button>
             </div>
           </div>
@@ -1113,7 +1115,7 @@ export default function Test() {
       />
 
       {/* Entry Popup - Show after student details */}
-      {showEntryPopup && showTestInstructions()}
+      {showEntryPopup && showInstructions()}
 
       {/* Submission Popup */}
       {showSubmissionPopup && (
