@@ -118,53 +118,35 @@ export default function Test() {
     setTimeLeft(prev => Math.max(prev - 1, 0));
   }, []);
 
-  const calculateScore = useCallback(() => {
-    if (!testData) return 0;
-
-    let correct = 0;
-    let incorrect = 0;
-    let marksForCorrect = 0;
-    let marksDeducted = 0;
-
-    // Calculate for objective questions
-    Object.entries(selectedAnswers).forEach(([index, answer]) => {
-      const questionIndex = parseInt(index);
-      const question = testData.questions[questionIndex];
+  const calculateScore = () => {
+    if (!testData || !testData.questions) return 0;
+    
+    let totalScore = 0;
+    
+    // Calculate score for multiple choice questions
+    Object.entries(selectedAnswers).forEach(([questionIndex, answer]) => {
+      const question = testData.questions[parseInt(questionIndex)];
+      if (!question || question.type !== 'multiple_choice') return;
       
-      if (question.type === 'objective') {
-        if (answer === testData.correctAnswers[questionIndex]) {
-          correct++;
-          marksForCorrect += testData.marksPerCorrect;
-        } else {
-          incorrect++;
-          marksDeducted += testData.negativeMarking;
-        }
+      if (answer === question.correctAnswer) {
+        totalScore += question.marks;
       }
     });
-
-    // Calculate for subjective questions
-    Object.entries(subjectiveAnswers).forEach(([index, answer]) => {
-      const questionIndex = parseInt(index);
-      const question = testData.questions[questionIndex];
+    
+    // Calculate score for subjective questions
+    Object.entries(subjectiveAnswers).forEach(([questionIndex, answer]) => {
+      const question = testData.questions[parseInt(questionIndex)];
+      if (!question || question.type !== 'subjective') return;
       
-      if (question.type === 'subjective' && answer) {
-        correct++;
-        marksForCorrect += testData.marksPerCorrect;
+      // For subjective questions, we'll just count them as answered
+      // The actual grading will be done by the teacher
+      if (answer && answer.trim() !== '') {
+        totalScore += question.marks;
       }
     });
-
-    const finalScore = Math.max(0, marksForCorrect - marksDeducted);
-
-    return {
-      correct,
-      incorrect,
-      final: finalScore,
-      negativeMarking: testData.negativeMarking,
-      marksPerCorrect: testData.marksPerCorrect,
-      marksForCorrect,
-      marksDeducted
-    };
-  }, [testData, selectedAnswers, subjectiveAnswers]);
+    
+    return totalScore;
+  };
 
   // Add auto-save functionality
   useEffect(() => {
@@ -233,6 +215,14 @@ export default function Test() {
         throw new Error("Please enter all your details before submitting the test.");
       }
 
+      // Prepare answers object with default empty values for unanswered questions
+      const allAnswers = {};
+      if (testData && testData.questions) {
+        testData.questions.forEach((_, index) => {
+          allAnswers[index] = selectedAnswers[index] || subjectiveAnswers[index] || null;
+        });
+      }
+
       // Calculate scores
       const score = calculateScore();
       
@@ -242,10 +232,7 @@ export default function Test() {
         regNo: userDetails.regNo,
         name: userDetails.name,
         branch: userDetails.branch,
-        answers: {
-          ...selectedAnswers,
-          ...subjectiveAnswers
-        },
+        answers: allAnswers,
         score: score
       };
 
