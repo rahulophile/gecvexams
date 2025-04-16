@@ -323,8 +323,10 @@ export default function Test() {
         return;
       }
 
+      // Hide entry popup and start test directly
       setShowEntryPopup(false);
-      setShowTestInstructions(true);
+      setTestStarted(true);
+      enterFullscreen();
     } catch (error) {
       console.error("Error checking registration:", error);
       setAlert({
@@ -334,88 +336,6 @@ export default function Test() {
         message: 'Failed to verify registration. Please try again.'
       });
     }
-  };
-
-  const handleBeginTest = () => {
-    setShowTestInstructions(false);
-    setTestStarted(true);
-    enterFullscreen();
-  };
-
-  const handleExitConfirm = async (confirmed) => {
-    if (confirmed) {
-      // Validate user details
-      if (!userDetails || !userDetails.name || !userDetails.regNo || !userDetails.branch) {
-        setAlert({
-          show: true,
-          type: 'error',
-          title: 'Missing Details',
-          message: 'Please enter all your details before submitting the test.'
-        });
-        setShowExitConfirm(false);
-        return;
-      }
-
-      try {
-        const score = calculateScore();
-        const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            roomNumber,
-            regNo: userDetails.regNo,
-            name: userDetails.name,
-            branch: userDetails.branch,
-            answers: {
-              ...selectedAnswers,
-              ...subjectiveAnswers
-            },
-            score: score
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          // Exit fullscreen only after successful submission
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else if (document.webkitFullscreenElement) {
-            await document.webkitExitFullscreen();
-          } else if (document.mozFullScreenElement) {
-            await document.mozCancelFullScreen();
-          } else if (document.msFullscreenElement) {
-            await document.msExitFullscreen();
-          }
-
-          setAlert({
-            show: true,
-            type: 'success',
-            title: 'Test Submitted',
-            message: 'Your test has been submitted successfully!'
-          });
-          
-          // Navigate after showing success message
-          setTimeout(() => {
-            navigate('/');
-          }, 2000);
-        }
-      } catch (error) {
-        console.error("Error submitting test:", error);
-        setAlert({
-          show: true,
-          type: 'error',
-          title: 'Submission Failed',
-          message: error.message || 'Error submitting test. Please try again.'
-        });
-      }
-    }
-    setShowExitConfirm(false);
   };
 
   // Add security measures
@@ -756,7 +676,7 @@ export default function Test() {
 
             <div className="mt-6 flex justify-end space-x-4">
               <button
-                onClick={handleBeginTest}
+                onClick={handleStartTest}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition duration-200"
               >
                 Begin Test
