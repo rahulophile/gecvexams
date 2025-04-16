@@ -71,12 +71,24 @@ export default function Test() {
         const data = await res.json();
         if (data.success) {
           setTestData(data.test);
+          setShowEntryPopup(true);
         } else {
-          setAlert({ show: true, type: 'error', title: 'Error', message: data.message });
+          setAlert({ 
+            show: true, 
+            type: 'error', 
+            title: 'Error', 
+            message: data.message || 'Failed to load test data' 
+          });
+          navigate('/');
         }
       } catch (error) {
         console.error("Error fetching test:", error);
-        setAlert({ show: true, type: 'error', title: 'Server Error', message: 'Unable to connect to server' });
+        setAlert({ 
+          show: true, 
+          type: 'error', 
+          title: 'Server Error', 
+          message: 'Unable to connect to server' 
+        });
         navigate('/');
       } finally {
         setIsLoading(false);
@@ -253,25 +265,26 @@ export default function Test() {
       });
 
       const data = await response.json();
-      if (!data.success) {
+      if (data.exists) {
         setAlert({
           show: true,
           type: 'error',
           title: 'Registration Error',
-          message: data.message
+          message: 'This registration number has already taken the test.'
         });
         return;
       }
 
-      // Show test instructions after successful registration check
-      setShowEntryPopup(true);
+      setShowEntryPopup(false);
+      setTestStarted(true);
+      enterFullscreen();
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error checking registration:", error);
       setAlert({
         show: true,
         type: 'error',
         title: 'Server Error',
-        message: 'Unable to verify registration. Please try again.'
+        message: 'Failed to verify registration. Please try again.'
       });
     }
   };
