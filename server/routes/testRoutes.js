@@ -52,7 +52,8 @@ const TestSchema = new mongoose.Schema({
         marksDeducted: Number
       }
     }
-  ]
+  ],
+  progress: { type: Object }
 });
 
 const TestModel = mongoose.model("Test", TestSchema);
@@ -622,6 +623,64 @@ router.get("/check-room/:roomNumber", verifyAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error checking room availability"
+    });
+  }
+});
+
+// Save test progress
+router.post("/save-progress", async (req, res) => {
+  try {
+    const { roomNumber, userDetails, answers, currentQuestionIndex } = req.body;
+    
+    // Find the test
+    const test = await TestModel.findOne({ roomNumber });
+    if (!test) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Test not found" 
+      });
+    }
+
+    // Check if there's an existing progress for this user
+    const existingProgress = test.progress || {};
+    const userProgress = existingProgress[userDetails.regNo] || {};
+
+    // Update progress
+    const updatedProgress = {
+      ...existingProgress,
+      [userDetails.regNo]: {
+        ...userProgress,
+        answers: answers,
+        currentQuestionIndex: currentQuestionIndex,
+        lastSaved: new Date(),
+        userDetails: userDetails
+      }
+    };
+
+    // Update the test with progress
+    const updatedTest = await TestModel.findOneAndUpdate(
+      { roomNumber: roomNumber },
+      { $set: { progress: updatedProgress } },
+      { new: true }
+    );
+
+    if (!updatedTest) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Test not found" 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Progress saved successfully"
+    });
+
+  } catch (error) {
+    console.error("Error saving progress:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || "Internal server error" 
     });
   }
 });

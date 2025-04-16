@@ -40,6 +40,13 @@ export default function Test() {
   const testContainerRef = useRef(null);
   const [showTestInstructions, setShowTestInstructions] = useState(false);
   const [studentDetailsSubmitted, setStudentDetailsSubmitted] = useState(false);
+  const [submissionProgress, setSubmissionProgress] = useState(0);
+  const [autoSaveInterval, setAutoSaveInterval] = useState(null);
+  const [lastSavedTime, setLastSavedTime] = useState(null);
+  const [showSubmissionSummary, setShowSubmissionSummary] = useState(false);
+  const [submissionError, setSubmissionError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -159,24 +166,73 @@ export default function Test() {
     };
   }, [testData, selectedAnswers, subjectiveAnswers]);
 
+  // Add auto-save functionality
+  useEffect(() => {
+    if (testStarted) {
+      const interval = setInterval(async () => {
+        try {
+          await autoSaveProgress();
+          setLastSavedTime(new Date());
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+        }
+      }, 300000); // Auto-save every 5 minutes
+
+      setAutoSaveInterval(interval);
+      return () => clearInterval(interval);
+    }
+  }, [testStarted]);
+
+  const autoSaveProgress = async () => {
+    try {
+      const response = await fetch("https://exam-server-gecv.onrender.com/api/save-progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          roomNumber,
+          userDetails,
+          answers: {
+            ...selectedAnswers,
+            ...subjectiveAnswers
+          },
+          currentQuestionIndex
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save progress");
+      }
+    } catch (error) {
+      console.error("Error saving progress:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = useCallback(async () => {
     if (!testStarted) return;
 
-    // Validate user details
-    if (!userDetails || !userDetails.name || !userDetails.regNo || !userDetails.branch) {
-      setAlert({
-        show: true,
-        type: 'error',
-        title: 'Missing Details',
-        message: 'Please enter all your details before submitting the test.'
-      });
-      return;
-    }
+    // Show submission confirmation dialog
+    setShowSubmitConfirm(true);
+  }, [testStarted]);
 
+  const confirmSubmit = async () => {
+    setShowSubmitConfirm(false);
+    setShowSubmissionSummary(true);
+  };
+
+  const finalizeSubmission = async () => {
     try {
       setIsSubmitting(true);
-      const token = localStorage.getItem('token');
-      
+      setSubmissionProgress(0);
+      setSubmissionError(null);
+
+      // Validate user details
+      if (!userDetails || !userDetails.name || !userDetails.regNo || !userDetails.branch) {
+        throw new Error("Please enter all your details before submitting the test.");
+      }
+
       // Calculate scores
       const score = calculateScore();
       
@@ -193,20 +249,39 @@ export default function Test() {
         score: score
       };
 
-      // Submit test
-      const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(submissionData)
-      });
+      // Submit test with retry mechanism
+      let success = false;
+      let error = null;
 
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.message || 'Failed to submit test');
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          setSubmissionProgress((i / MAX_RETRIES) * 100);
+          const response = await fetch("https://exam-server-gecv.onrender.com/api/submit-test", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(submissionData)
+          });
+
+          const data = await response.json();
+          
+          if (data.success) {
+            success = true;
+            break;
+          } else {
+            error = data.message || "Failed to submit test";
+          }
+        } catch (err) {
+          error = err.message;
+          if (i < MAX_RETRIES - 1) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+          }
+        }
+      }
+
+      if (!success) {
+        throw new Error(error || "Failed to submit test after multiple attempts");
       }
 
       // Show success message
@@ -224,6 +299,7 @@ export default function Test() {
 
     } catch (error) {
       console.error("Error submitting test:", error);
+      setSubmissionError(error.message);
       setAlert({
         show: true,
         type: 'error',
@@ -232,8 +308,9 @@ export default function Test() {
       });
     } finally {
       setIsSubmitting(false);
+      setShowSubmissionSummary(false);
     }
-  }, [testStarted, userDetails, roomNumber, selectedAnswers, subjectiveAnswers, navigate, calculateScore]);
+  };
 
   useEffect(() => {
     if (!testStarted || timeLeft === null) return;
@@ -1000,6 +1077,100 @@ export default function Test() {
             title={alert.title}
             message={alert.message}
           />
+          {/* Submission Confirmation Dialog */}
+          {showSubmitConfirm && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+              <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+                <h2 className="text-2xl font-bold mb-4">Confirm Submission</h2>
+                <p className="mb-4">Are you sure you want to submit your test? This action cannot be undone.</p>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setShowSubmitConfirm(false)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmSubmit}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Submission Summary */}
+          {showSubmissionSummary && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+              <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4">
+                <h2 className="text-2xl font-bold mb-4">Test Submission Summary</h2>
+                
+                {/* Progress Bar */}
+                {isSubmitting && (
+                  <div className="mb-4">
+                    <div className="w-full bg-gray-700 rounded-full h-2.5">
+                      <div 
+                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${submissionProgress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-sm text-gray-400 mt-1">Submitting your test... {Math.round(submissionProgress)}%</p>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {submissionError && (
+                  <div className="mb-4 p-4 bg-red-900/50 rounded-lg">
+                    <p className="text-red-400">{submissionError}</p>
+                  </div>
+                )}
+
+                {/* Summary Content */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Your Details</h3>
+                      <p>Name: {userDetails.name}</p>
+                      <p>Registration No: {userDetails.regNo}</p>
+                      <p>Branch: {userDetails.branch}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Test Progress</h3>
+                      <p>Questions Attempted: {Object.keys(selectedAnswers).length + Object.keys(subjectiveAnswers).length}</p>
+                      <p>Questions Marked for Review: {Object.keys(review).length}</p>
+                      <p>Time Remaining: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}</p>
+                    </div>
+                  </div>
+
+                  {/* Last Saved Time */}
+                  {lastSavedTime && (
+                    <p className="text-sm text-gray-400">
+                      Last auto-saved: {lastSavedTime.toLocaleTimeString()}
+                    </p>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end space-x-4 mt-6">
+                    <button
+                      onClick={() => setShowSubmissionSummary(false)}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                    >
+                      Back to Test
+                    </button>
+                    <button
+                      onClick={finalizeSubmission}
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Submit Test'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

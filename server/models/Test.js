@@ -39,7 +39,11 @@ const TestSchema = new mongoose.Schema({
         marksPerCorrect: Number
       }
     }
-  ]
+  ],
+  progress: {
+    type: Object,
+    default: {}
+  }
 });
 
 module.exports = mongoose.models.Test || mongoose.model("Test", TestSchema);
