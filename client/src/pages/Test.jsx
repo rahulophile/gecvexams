@@ -123,10 +123,10 @@ export default function Test() {
     
     let totalScore = 0;
     
-    // Calculate score for multiple choice questions
+    // Calculate score for objective questions
     Object.entries(selectedAnswers).forEach(([questionIndex, answer]) => {
       const question = testData.questions[parseInt(questionIndex)];
-      if (!question || question.type !== 'multiple_choice') return;
+      if (!question || question.type !== 'objective') return;
       
       if (answer === question.correctAnswer) {
         totalScore += question.marks;
@@ -210,30 +210,65 @@ export default function Test() {
       setSubmissionProgress(0);
       setSubmissionError(null);
 
+      // Check if test has expired
+      if (timeLeft <= 0) {
+        throw new Error("Test time has expired. Your responses will be submitted automatically.");
+      }
+
+      // Validate test data
+      if (!testData || !testData.questions || testData.questions.length === 0) {
+        throw new Error("Test data is not available. Please refresh the page and try again.");
+      }
+
       // Validate user details
       if (!userDetails || !userDetails.name || !userDetails.regNo || !userDetails.branch) {
         throw new Error("Please enter all your details before submitting the test.");
       }
 
-      // Prepare answers object with default empty values for unanswered questions
-      const allAnswers = {};
-      if (testData && testData.questions) {
-        testData.questions.forEach((_, index) => {
-          allAnswers[index] = selectedAnswers[index] || subjectiveAnswers[index] || null;
-        });
+      // Check if registration number is already used
+      const checkResponse = await fetch("https://exam-server-gecv.onrender.com/api/check-registration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          roomNumber,
+          regNo: userDetails.regNo
+        })
+      });
+
+      const checkData = await checkResponse.json();
+      if (!checkData.success) {
+        throw new Error(checkData.message || "This registration number has already submitted the test.");
       }
 
-      // Calculate scores
-      const score = calculateScore();
+      // Check if test time has expired on server
+      const timeCheckResponse = await fetch(`https://exam-server-gecv.onrender.com/api/verify-room/${roomNumber}`);
+      const timeCheckData = await timeCheckResponse.json();
       
+      if (!timeCheckData.success) {
+        if (timeCheckData.testEnded) {
+          throw new Error("Test time has expired. Submissions are no longer accepted.");
+        } else if (timeCheckData.notStarted) {
+          throw new Error("Test has not started yet.");
+        }
+      }
+
+      // Prepare answers object with default empty values for unanswered questions
+      const allAnswers = {};
+      testData.questions.forEach((_, index) => {
+        allAnswers[index] = selectedAnswers[index] || subjectiveAnswers[index] || null;
+      });
+
       // Prepare submission data
       const submissionData = {
         roomNumber,
-        regNo: userDetails.regNo,
-        name: userDetails.name,
-        branch: userDetails.branch,
-        answers: allAnswers,
-        score: score
+        userDetails: {
+          name: userDetails.name,
+          regNo: userDetails.regNo,
+          branch: userDetails.branch
+        },
+        answers: allAnswers
       };
 
       // Submit test with retry mechanism
@@ -255,14 +290,34 @@ export default function Test() {
           
           if (data.success) {
             success = true;
+            setSubmissionStatus('success');
+            setShowSubmissionPopup(true);
+            setCountdown(10);
+            
+            // Show success message
+            setAlert({
+              show: true,
+              type: 'success',
+              title: 'Test Submitted',
+              message: 'Your test has been submitted successfully.'
+            });
+
+            // Wait for 2 seconds before navigation
+            setTimeout(() => {
+              navigate('/');
+            }, 2000);
+            
             break;
           } else {
             error = data.message || "Failed to submit test";
+            if (i < MAX_RETRIES - 1) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
           }
         } catch (err) {
           error = err.message;
           if (i < MAX_RETRIES - 1) {
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         }
       }
@@ -270,19 +325,6 @@ export default function Test() {
       if (!success) {
         throw new Error(error || "Failed to submit test after multiple attempts");
       }
-
-      // Show success message
-      setAlert({
-        show: true,
-        type: 'success',
-        title: 'Test Submitted',
-        message: 'Your test has been submitted successfully.'
-      });
-
-      // Wait for 2 seconds before navigation
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
 
     } catch (error) {
       console.error("Error submitting test:", error);

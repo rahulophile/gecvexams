@@ -273,12 +273,52 @@ router.post("/submit-test", async (req, res) => {
   try {
     const { roomNumber, userDetails, answers } = req.body;
     
-    // Find the test first to get negative marking and marks per correct
+    // Validate required fields
+    if (!roomNumber || !userDetails || !answers) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Missing required fields" 
+      });
+    }
+
+    // Validate user details
+    if (!userDetails.name || !userDetails.regNo || !userDetails.branch) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Please provide all student details" 
+      });
+    }
+
+    // Find the test
     const test = await TestModel.findOne({ roomNumber });
     if (!test) {
       return res.status(404).json({ 
         success: false, 
         message: "Test not found" 
+      });
+    }
+
+    // Check if test has ended
+    const testStartDateTime = moment.tz(`${test.date} ${test.time}`, "Asia/Kolkata");
+    const testEndDateTime = testStartDateTime.clone().add(test.duration + 10, 'minutes');
+    const now = moment();
+
+    if (now.isAfter(testEndDateTime)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Test time has expired. Submissions are no longer accepted." 
+      });
+    }
+
+    // Check if student has already submitted
+    const existingSubmission = test.submissions.find(
+      sub => sub.regNo === userDetails.regNo
+    );
+
+    if (existingSubmission) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "You have already submitted this test" 
       });
     }
 
@@ -297,12 +337,11 @@ router.post("/submit-test", async (req, res) => {
       }
     });
 
-    // Calculate final score with marks per correct and negative marking
-    const marksPerCorrect = test.marksPerCorrect || 1; // Default to 1 if not set
+    // Calculate final score
+    const marksPerCorrect = test.marksPerCorrect || 1;
     const marksForCorrect = correctAnswers * marksPerCorrect;
     const marksDeducted = test.negativeMarking * incorrectAnswers;
-    const finalScore = marksForCorrect - marksDeducted;
-    const adjustedScore = Math.max(0, finalScore);
+    const finalScore = Math.max(0, marksForCorrect - marksDeducted);
 
     // Create submission object
     const submission = {
@@ -314,7 +353,7 @@ router.post("/submit-test", async (req, res) => {
       score: {
         correct: correctAnswers,
         incorrect: incorrectAnswers,
-        final: adjustedScore,
+        final: finalScore,
         negativeMarking: test.negativeMarking,
         marksPerCorrect: marksPerCorrect,
         marksForCorrect: marksForCorrect,
