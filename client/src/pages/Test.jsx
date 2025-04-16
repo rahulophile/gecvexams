@@ -301,11 +301,6 @@ export default function Test() {
               title: 'Test Submitted',
               message: 'Your test has been submitted successfully.'
             });
-
-            // Wait for 2 seconds before navigation
-            setTimeout(() => {
-              navigate('/');
-            }, 2000);
             
             break;
           } else {
