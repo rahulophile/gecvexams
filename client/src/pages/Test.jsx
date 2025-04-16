@@ -109,43 +109,53 @@ export default function Test() {
     setTimeLeft(prev => Math.max(prev - 1, 0));
   }, []);
 
-  useEffect(() => {
-    if (!testStarted || timeLeft === null) return;
+  const calculateScore = useCallback(() => {
+    if (!testData) return 0;
 
-    if (timeLeft <= 0) {
-      handleSubmit();
-      return;
-    }
+    let correct = 0;
+    let incorrect = 0;
+    let marksForCorrect = 0;
+    let marksDeducted = 0;
 
-    const timer = setInterval(updateTimer, 1000);
-    return () => clearInterval(timer);
-  }, [testStarted, timeLeft, updateTimer, handleSubmit]);
-
-  const handleAnswerChange = (questionIndex, selectedOption) => {
-    if (testData.questions[questionIndex].type === 'subjective') {
-      setSubjectiveAnswers(prev => ({
-        ...prev,
-        [questionIndex]: selectedOption
-      }));
-    } else {
-      setSelectedAnswers(prev => ({
-        ...prev,
-        [questionIndex]: selectedOption
-      }));
-    }
-  };
-
-  const handleMarkForReview = (qIndex) => {
-    setReview(prev => ({ ...prev, [qIndex]: !prev[qIndex] }));
-  };
-
-  const handleClearResponse = (qIndex) => {
-    setSelectedAnswers(prev => {
-      const newAnswers = { ...prev };
-      delete newAnswers[qIndex];
-      return newAnswers;
+    // Calculate for objective questions
+    Object.entries(selectedAnswers).forEach(([index, answer]) => {
+      const questionIndex = parseInt(index);
+      const question = testData.questions[questionIndex];
+      
+      if (question.type === 'objective') {
+        if (answer === testData.correctAnswers[questionIndex]) {
+          correct++;
+          marksForCorrect += testData.marksPerCorrect;
+        } else {
+          incorrect++;
+          marksDeducted += testData.negativeMarking;
+        }
+      }
     });
-  };
+
+    // Calculate for subjective questions
+    Object.entries(subjectiveAnswers).forEach(([index, answer]) => {
+      const questionIndex = parseInt(index);
+      const question = testData.questions[questionIndex];
+      
+      if (question.type === 'subjective' && answer) {
+        correct++;
+        marksForCorrect += testData.marksPerCorrect;
+      }
+    });
+
+    const finalScore = Math.max(0, marksForCorrect - marksDeducted);
+
+    return {
+      correct,
+      incorrect,
+      final: finalScore,
+      negativeMarking: testData.negativeMarking,
+      marksPerCorrect: testData.marksPerCorrect,
+      marksForCorrect,
+      marksDeducted
+    };
+  }, [testData, selectedAnswers, subjectiveAnswers]);
 
   const handleSubmit = useCallback(async () => {
     if (!testStarted) return;
@@ -222,6 +232,44 @@ export default function Test() {
       setIsSubmitting(false);
     }
   }, [testStarted, userDetails, roomNumber, selectedAnswers, subjectiveAnswers, navigate]);
+
+  useEffect(() => {
+    if (!testStarted || timeLeft === null) return;
+
+    if (timeLeft <= 0) {
+      handleSubmit();
+      return;
+    }
+
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [testStarted, timeLeft, updateTimer, handleSubmit]);
+
+  const handleAnswerChange = (questionIndex, selectedOption) => {
+    if (testData.questions[questionIndex].type === 'subjective') {
+      setSubjectiveAnswers(prev => ({
+        ...prev,
+        [questionIndex]: selectedOption
+      }));
+    } else {
+      setSelectedAnswers(prev => ({
+        ...prev,
+        [questionIndex]: selectedOption
+      }));
+    }
+  };
+
+  const handleMarkForReview = (qIndex) => {
+    setReview(prev => ({ ...prev, [qIndex]: !prev[qIndex] }));
+  };
+
+  const handleClearResponse = (qIndex) => {
+    setSelectedAnswers(prev => {
+      const newAnswers = { ...prev };
+      delete newAnswers[qIndex];
+      return newAnswers;
+    });
+  };
 
   const enterFullscreen = () => {
     if (testContainerRef.current) {
