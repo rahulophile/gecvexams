@@ -1200,6 +1200,28 @@ export default function Test() {
               </div>
             </div>
           )}
+
+          {showSubmissionPopup && (
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+              <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+                <div className="text-center">
+                  <div className="mb-4">
+                    <FaCheckCircle className="text-green-500 text-6xl mx-auto" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-2">Test Submitted Successfully!</h2>
+                  <p className="text-gray-400 mb-4">
+                    Redirecting to home page in {countdown} seconds...
+                  </p>
+                  <button
+                    onClick={() => navigate('/')}
+                    className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Go to Home Page
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
