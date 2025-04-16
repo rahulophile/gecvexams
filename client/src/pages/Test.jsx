@@ -27,7 +27,7 @@ export default function Test() {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [alert, setAlert] = useState({ show: false, type: '', title: '', message: '' });
   const [isLoading, setIsLoading] = useState(true);
-  const [showEntryPopup, setShowEntryPopup] = useState(false);
+  const [showEntryPopup, setShowEntryPopup] = useState(true);
   const [showSubmissionPopup, setShowSubmissionPopup] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [countdown, setCountdown] = useState(10);
@@ -38,6 +38,7 @@ export default function Test() {
   const [violationCountdown, setViolationCountdown] = useState(5);
   const testContainerRef = useRef(null);
   const [showTestInstructions, setShowTestInstructions] = useState(false);
+  const [studentDetailsSubmitted, setStudentDetailsSubmitted] = useState(false);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -288,54 +289,25 @@ export default function Test() {
     setShowExitConfirm(true);
   };
 
-  const handleStartTest = async () => {
-    if (!userDetails.name || !userDetails.branch || !userDetails.regNo) {
+  const handleStudentDetailsSubmit = () => {
+    if (!userDetails.name || !userDetails.regNo || !userDetails.branch) {
       setAlert({
         show: true,
         type: 'error',
         title: 'Missing Details',
-        message: 'Please enter all details before starting.'
+        message: 'Please fill in all the required details.'
       });
       return;
     }
+    setShowEntryPopup(false);
+    setShowTestInstructions(true);
+    setStudentDetailsSubmitted(true);
+  };
 
-    try {
-      // Check if registration number already exists
-      const response = await fetch("https://exam-server-gecv.onrender.com/api/check-registration", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          roomNumber,
-          regNo: userDetails.regNo
-        })
-      });
-
-      const data = await response.json();
-      if (data.exists) {
-        setAlert({
-          show: true,
-          type: 'error',
-          title: 'Registration Error',
-          message: 'This registration number has already taken the test.'
-        });
-        return;
-      }
-
-      // Hide entry popup and start test directly
-      setShowEntryPopup(false);
-      setTestStarted(true);
-      enterFullscreen();
-    } catch (error) {
-      console.error("Error checking registration:", error);
-      setAlert({
-        show: true,
-        type: 'error',
-        title: 'Server Error',
-        message: 'Failed to verify registration. Please try again.'
-      });
-    }
+  const handleStartTest = async () => {
+    setShowTestInstructions(false);
+    setTestStarted(true);
+    enterFullscreen();
   };
 
   // Add security measures
@@ -765,10 +737,10 @@ export default function Test() {
                   />
                 </div>
                 <button
-                  onClick={handleStartTest}
+                  onClick={handleStudentDetailsSubmit}
                   className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg"
                 >
-                  Start Test
+                  Submit Details
                 </button>
               </div>
             </div>
