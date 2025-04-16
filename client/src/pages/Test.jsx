@@ -653,34 +653,45 @@ export default function Test() {
     switch (testStage) {
       case 'details':
         return (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-              <h2 className="text-2xl font-bold mb-4">Enter Your Details</h2>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={userDetails.name}
-                  onChange={(e) => setUserDetails({ ...userDetails, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
-                <input
-                  type="text"
-                  placeholder="Registration Number"
-                  value={userDetails.regNo}
-                  onChange={(e) => setUserDetails({ ...userDetails, regNo: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
-                <input
-                  type="text"
-                  placeholder="Branch"
-                  value={userDetails.branch}
-                  onChange={(e) => setUserDetails({ ...userDetails, branch: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
+          <div className="relative container mx-auto px-4 py-8">
+            <div className="mt-10 max-w-md mx-auto bg-white/10 backdrop-blur-lg rounded-xl p-8 shadow-2xl animate-fadeIn">
+              <h2 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-white">
+                Enter Your Details
+              </h2>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-300 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    value={userDetails.name}
+                    onChange={(e) => setUserDetails({ ...userDetails, name: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2">Branch</label>
+                  <input
+                    type="text"
+                    value={userDetails.branch}
+                    onChange={(e) => setUserDetails({ ...userDetails, branch: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Enter your branch"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-2">Registration Number</label>
+                  <input
+                    type="text"
+                    value={userDetails.regNo}
+                    onChange={(e) => setUserDetails({ ...userDetails, regNo: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="Enter your registration number"
+                  />
+                </div>
                 <button
                   onClick={handleStudentDetailsSubmit}
-                  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg"
                 >
                   Submit Details
                 </button>
@@ -691,28 +702,36 @@ export default function Test() {
 
       case 'instructions':
         return (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4">
               <h2 className="text-2xl font-bold mb-4">Test Instructions</h2>
               <div className="space-y-4">
-                <p className="text-gray-700">
-                  Please read the following instructions carefully before starting the test:
-                </p>
-                <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                  <li>The test duration is {testData?.duration} minutes.</li>
-                  <li>Each correct answer carries {testData?.marksPerCorrect} marks.</li>
-                  <li>Negative marking of {testData?.negativeMarking} marks for each wrong answer.</li>
-                  <li>Do not switch tabs or windows during the test.</li>
-                  <li>Do not use any external resources or devices.</li>
-                  <li>Fullscreen mode will be enabled when you start the test.</li>
-                  <li>You cannot go back once you start the test.</li>
-                </ul>
-                <div className="flex justify-end space-x-4 mt-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">General Instructions:</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>You have {testData.duration} minutes to complete the test.</li>
+                    <li>Do not switch tabs or windows during the test.</li>
+                    <li>Do not use any external resources.</li>
+                    <li>Do not copy/paste or take screenshots.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Scoring Information:</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Each correct answer gives you {testData.marksPerCorrect} mark(s).</li>
+                    <li>Each wrong answer deducts {testData.negativeMarking} mark(s).</li>
+                    <li>Unanswered questions do not affect your score.</li>
+                    <li>Your final score cannot go below 0.</li>
+                  </ul>
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-4">
                   <button
                     onClick={handleStartTest}
-                    className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition duration-200"
                   >
-                    Start Test
+                    Begin Test
                   </button>
                 </div>
               </div>
@@ -722,7 +741,7 @@ export default function Test() {
 
       case 'test':
         return (
-          <div className="min-h-screen bg-gray-100">
+          <div className="relative container mx-auto px-4 py-8">
             {/* Test interface */}
             {/* ... existing test interface code ... */}
           </div>
@@ -746,10 +765,16 @@ export default function Test() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100" ref={testContainerRef}>
+    <div ref={testContainerRef} className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-y-auto">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="animate-float1 absolute -top-4 -left-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
+        <div className="animate-float2 absolute top-1/2 -right-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
+      </div>
+
       {isLoading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+          <div className="text-white text-xl">Loading...</div>
         </div>
       ) : (
         <>
