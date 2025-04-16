@@ -100,7 +100,6 @@ export default function Test() {
 
   useEffect(() => {
     if (testData && !testStarted) {
-      // Initialize timer with test duration in seconds
       setTimeLeft(testData.duration * 60);
     }
   }, [testData, testStarted]);
@@ -231,7 +230,7 @@ export default function Test() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [testStarted, userDetails, roomNumber, selectedAnswers, subjectiveAnswers, navigate]);
+  }, [testStarted, userDetails, roomNumber, selectedAnswers, subjectiveAnswers, navigate, calculateScore]);
 
   useEffect(() => {
     if (!testStarted || timeLeft === null) return;

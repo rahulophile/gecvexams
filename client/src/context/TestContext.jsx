@@ -3,7 +3,8 @@ import { createContext, useContext, useState, useCallback, useMemo, useEffect } 
 const TestContext = createContext({
   isVerified: false,
   verifiedRoom: null,
-  setVerification: () => {}
+  setVerification: () => {},
+  isInitialized: false
 });
 
 export function TestProvider({ children }) {
@@ -12,14 +13,14 @@ export function TestProvider({ children }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    // Initialize context
     setIsInitialized(true);
   }, []);
 
   const setVerification = useCallback((verified, room) => {
-    if (!isInitialized) return;
     setIsVerified(verified);
     setVerifiedRoom(room);
-  }, [isInitialized]);
+  }, []);
 
   const value = useMemo(() => ({
     isVerified,

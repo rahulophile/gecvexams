@@ -80,8 +80,9 @@ export default function Home() {
         title: 'Server Error',
         message: 'Failed to verify room. Please try again.'
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const adminLogin = async () => {
