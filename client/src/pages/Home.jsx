@@ -172,7 +172,7 @@ export default function Home() {
           <p className="text-gray-400">Developed with ❤️ and ☕️ by <span style="color: "blue":">Coding Club</span></p>
           <div className="flex justify-center space-x-4">
             <a 
-              href="https://github.com/rahulophile" 
+              href="https://github.com/codingclubgecv" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
@@ -180,7 +180,7 @@ export default function Home() {
               <FaGithub size={24} />
             </a>
             <a 
-              href="https://linkedin.com/in/rahulophile" 
+              href="https://github.com/codingclubgecv" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
