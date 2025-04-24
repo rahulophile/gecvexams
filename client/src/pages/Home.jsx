@@ -169,7 +169,7 @@ export default function Home() {
 
         {/* Developer info */}
         <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 to-transparent backdrop-blur-sm py-4 text-center space-y-2 animate-fadeIn">
-          <p className="text-gray-400">Developed with ❤️ and ☕️ by <span style={{ color: "blue" }}>Coding Club</span></p>
+          <p className="text-gray-400">Developed with ❤️ and ☕️ by <span style={{ color: "#a855f7" }}>Coding Club</span></p>
           <div className="flex justify-center space-x-4">
             <a 
               href="https://github.com/codingclubgecv" 
